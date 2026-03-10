@@ -1,0 +1,28 @@
+# macOS
+.DS_Store
+
+# IDE
+.cursor/
+
+# Office docs (binary)
+*.docx
+
+# Environment
+.env
+.env.*
+
+# Ruby / Rails
+/log/*
+/tmp/*
+/storage/*
+/public/assets
+/public/packs
+/node_modules
+/vendor/bundle
+/.bundle
+/db/*.sqlite3
+/db/*.sqlite3-journal
+
+# Credentials
+/config/master.key
+/config/credentials/*.key

@@ -232,9 +232,9 @@ This avoids a full SPA build while getting React's strengths where they matter m
 
 **Which LLM provider and model?**
 
-**Decision: OpenAI GPT-4o (primary) with Anthropic Claude 3.5 Sonnet as fallback.**
+**Decision: OpenAI GPT-4o (primary) with Anthropic Claude Sonnet 4.6 as fallback.**
 
-GPT-4o provides: excellent function calling support, vision capabilities (for OCR augmentation), fast response times, and well-documented API. Claude 3.5 Sonnet as fallback provides: resilience if OpenAI has outages, potentially better emotional tone for support content, and 200K context window for long conversations.
+GPT-4o provides: excellent function calling support, vision capabilities (for OCR augmentation), fast response times, and well-documented API. Claude Sonnet 4.6 as fallback provides: resilience if OpenAI has outages, potentially better emotional tone for support content, and 200K context window for long conversations.
 
 For sentiment detection specifically: use GPT-4o-mini (cheaper, faster, sufficient accuracy for classification tasks). This saves cost on the highest-frequency AI call in the system.
 
@@ -342,7 +342,7 @@ Critical concern. Government IDs contain highly sensitive PII. Mitigations:
 | Service | Provider | Purpose |
 |---|---|---|
 | LLM (primary) | OpenAI (GPT-4o) | Chatbot, tool calling, OCR augmentation |
-| LLM (fallback) | Anthropic (Claude 3.5 Sonnet) | Fallback, emotional support content |
+| LLM (fallback) | Anthropic (Claude Sonnet 4.6) | Fallback, emotional support content |
 | LLM (lightweight) | OpenAI (GPT-4o-mini) | Sentiment detection, summarization |
 | OCR (primary) | OpenAI Vision | Document text extraction |
 | OCR (fallback) | Google Cloud Vision | Structured OCR with confidence scores |
@@ -577,7 +577,7 @@ Organized by domain within the service layer (`onboarding/`, `llm/`, `ocr/`, `sc
 | Database | PostgreSQL + Redis | Reliable, Rails-native, JSONB for flexible schema |
 | LLM (primary) | OpenAI GPT-4o | Best function calling, vision support, speed |
 | LLM (sentiment) | OpenAI GPT-4o-mini | Cost-effective for classification |
-| LLM (fallback) | Anthropic Claude 3.5 Sonnet | Resilience, better emotional tone |
+| LLM (fallback) | Anthropic Claude Sonnet 4.6 | Resilience, better emotional tone |
 | OCR (primary) | OpenAI Vision (GPT-4o) | Single API, flexible, no template config needed |
 | OCR (fallback) | Google Cloud Vision | Structured output with confidence scores |
 | Tool calling | Native function calling | Structured JSON, explicit schemas |
