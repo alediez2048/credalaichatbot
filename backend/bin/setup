@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -e
+cd "$(dirname "$0")/.."
+bundle install
+bin/rails db:prepare
+echo "Run bin/dev (requires Redis). Or: redis-server & bin/rails s"
