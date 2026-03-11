@@ -1,8 +1,20 @@
 # Tickets
 
-Ticket primers live here. Before coding any ticket:
+**Canonical location:** `docs/tickets/` — all ticket docs live here.
 
-1. Read **`P{phase}-{id}-primer.md`** for that ticket.
+## Index (one primer per ticket)
+
+| File | Use it for |
+|------|-------------|
+| **P0-001-primer.md** | Rails scaffold + DB: acceptance criteria and step-by-step setup (Ruby, Postgres, Redis, `.env`, `bundle`, `db:migrate`). |
+| **P0-005-primer.md** | Frontend toolchain: esbuild + Tailwind CSS + React setup, styling migration. |
+| **P1-000-primer.md** | Landing page + `/onboarding` route: deliverables, acceptance criteria, content spec. |
+| **P1-001-primer.md** | Chat UI + streaming: scope, prerequisites (P0-002 + P0-005 + P1-000), file hints. |
+| **DEVLOG.md** | What shipped per ticket, decisions, follow-ups. Update when you finish a ticket. |
+
+Before coding any ticket:
+
+1. Read the **primer** for that ticket (`P?-???-primer.md`).
 2. Read **DEVLOG.md** for prior decisions and blockers.
 3. Follow `.cursor/rules/context-loading.mdc` and `scope-control.mdc`.
 
@@ -10,11 +22,15 @@ Ticket primers live here. Before coding any ticket:
 
 **Landing page** (`/`) → **Full-screen chatbot** (`/onboarding`). The chat IS the onboarding.
 
+## Frontend stack
+
+**Tailwind CSS** for all styling. **Hotwire/ERB** for server-rendered pages (landing, admin, Devise). **React** for the chat component only. **esbuild** for JS bundling (JSX support).
+
 ## Phase order
 
 | Phase | Focus |
 |-------|--------|
-| **P0** | Rails scaffold, LLM service + tools, prompts, observability |
+| **P0** | Rails scaffold, frontend toolchain (esbuild + Tailwind + React), LLM service + tools, prompts, observability |
 | **P1** | Landing page, chat UI, streaming, orchestration, persistence, errors, anonymous merge, rate limits |
 | **P2+** | OCR, scheduling, emotional support, evals, deploy |
 
@@ -22,13 +38,12 @@ Ticket primers live here. Before coding any ticket:
 
 ```
 P0-001 (scaffold) ✅ DONE
+├── P0-005 (esbuild + Tailwind + React) ← DO NEXT
+│   └── P1-000 (landing page + routing)
+│       └── P1-001 (chat UI + streaming) — also needs P0-002
 ├── P0-002 (LLM service + tools)
 │   ├── P0-003 (prompts)
 │   └── P0-004 (observability)
-├── P1-000 (landing page + routing) ← NEW
-│   └── P1-001 (chat UI + streaming) — needs P0-002 + P1-000
-│       └── P1-002 (onboarding orchestration)
-│           └── P1-003 (session persistence)
 └── P1-005 (anonymous merge)
 ```
 

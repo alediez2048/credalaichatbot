@@ -22,9 +22,10 @@ Deliver a React chat UI mounted in the `/onboarding` view (set up by P1-000) whe
 | **P0-001** | Rails app, PostgreSQL, Action Cable, `Message` model + migrations |
 | **P0-002** | `LLM::ChatService` (or equivalent) must expose a streaming path the channel can consume |
 | **P0-003** | Optional for first slice; system prompt can be stubbed until wired |
+| **P0-005** | esbuild + React + Tailwind toolchain — React cannot compile without esbuild |
 | **P1-000** | Landing page + `/onboarding` route with chat container mount point |
 
-**If no app exists in the repo:** complete **P0-001** first (scaffold + `Message` + Action Cable handshake), then **P0-002** minimal streaming contract, then **P1-000** (landing + routing), then implement P1-001.
+**If no app exists in the repo:** complete **P0-001** first (scaffold + `Message` + Action Cable handshake), then **P0-005** (frontend toolchain), then **P0-002** (LLM service), then **P1-000** (landing + routing), then implement P1-001.
 
 ---
 

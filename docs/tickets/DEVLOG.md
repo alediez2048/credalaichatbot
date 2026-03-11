@@ -46,22 +46,41 @@ Single place to record what landed per ticket, decisions, and follow-ups.
 
 ---
 
-### P1-000 — Landing page & routing
+### P0-005 — Frontend toolchain: esbuild + Tailwind CSS + React
 **Date:** _pending_
-**Branch:** feature/P1-000-landing-page
+**Branch:** feature/P0-005-frontend-toolchain
 
-**Status:** Primer created. Blocked on P0-001 completion (done) — ready to implement.
+**Status:** Primer created. Ready to implement (only depends on P0-001 ✅).
 
 **What shipped:**
-- `docs/tickets/P1-000-primer.md` — scope, acceptance criteria, content spec
+- `docs/tickets/P0-005-primer.md` — full setup guide, step-by-step, acceptance criteria
 
 **Decisions:**
-- Form factor defined: landing page (`/`) + full-screen chat (`/onboarding`)
-- Landing page is server-rendered ERB (no React); chat mount point at `/onboarding`
-- Anonymous users can access `/onboarding` — auth deferred to document upload (P1-005)
+- Replace Importmap with esbuild (jsbundling-rails) for JSX support
+- Tailwind CSS replaces all vanilla CSS — utility-first, no Bootstrap
+- React only for chat component; landing page stays ERB + Tailwind
+- @tailwindcss/forms plugin for clean Devise form styling
 
 **Follow-ups / debt:**
-- Styling approach TBD (Tailwind vs scoped CSS)
+- Execute P0-005 before P1-000 (landing page needs Tailwind)
+
+---
+
+### P1-000 — Landing page & routing
+**Date:** 2026-03-10
+**Branch:** feature/P1-000-landing-page
+
+**What shipped:**
+- Landing page at `/`: hero, tagline, description, "Start Onboarding →" CTA, features list, footer
+- Route `get '/onboarding', to: 'onboarding#chat'`; `OnboardingController#chat` (no auth gate)
+- `app/views/onboarding/chat.html.erb` with `#chat-root` container (placeholder for P1-001)
+- Layout: nav with logo, Sign in | Sign up (or user email + Sign out when signed in)
+- Scoped CSS: landing + nav + chat container, mobile-responsive (375px)
+
+**Decisions:**
+- Form factor: landing at `/`, chat at `/onboarding`; server-rendered ERB
+- No auth required for `/onboarding`; auth deferred to document upload (P1-005)
+- Used scoped custom CSS initially — **will be replaced by Tailwind in P0-005**
 
 ---
 

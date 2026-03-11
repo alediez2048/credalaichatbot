@@ -124,7 +124,8 @@ Priya, 35, runs onboarding for a 500-person company. She wants to see which new 
 | Layer | Technology | Purpose |
 |---|---|---|
 | Backend | Ruby on Rails 7 (monolith) | API, business logic, orchestration |
-| Frontend | Hotwire + React (chat component) | Server-rendered pages + rich chat UX |
+| Frontend | Tailwind CSS + Hotwire (pages) + React (chat) | Tailwind for all styling, ERB for landing/admin, React for chat UI |
+| JS Bundler | esbuild via jsbundling-rails | Enables JSX/TSX for the React chat component |
 | Database | PostgreSQL + Redis | Persistent storage + caching/sessions/queues |
 | LLM (primary) | OpenAI GPT-4o | Chatbot, function calling, OCR augmentation |
 | LLM (lightweight) | OpenAI GPT-4o-mini | Sentiment detection, summarization |
@@ -239,7 +240,7 @@ This is the exact sequence shown in the demo video:
 
 ## 7. Phase 0 — Foundation & Setup
 
-**Day 1, Hours 0-4 | 4 tickets | Estimated: 4 hours**
+**Day 1, Hours 0-4 | 5 tickets | Estimated: 5.5 hours**
 
 ---
 
@@ -254,6 +255,22 @@ Initialize Rails 7 app with PostgreSQL, Redis, Sidekiq, Action Cable, Devise. Cr
 - ✓ Devise authentication works (signup, login, logout)
 - ✓ Sidekiq processes jobs from Redis queue
 - ✓ Action Cable WebSocket connection establishes in browser
+
+---
+
+### `P0-005` — Frontend toolchain: esbuild + Tailwind CSS + React
+**Priority: P0** | **Estimate: 1.5 hours**
+
+Replace Importmap with esbuild (via `jsbundling-rails`) to enable JSX/TSX compilation. Install Tailwind CSS (via `tailwindcss-rails` or npm). Add React and ReactDOM. Restyle the existing landing page and layout with Tailwind utility classes. Create the React mount point for the chat component.
+
+**Acceptance Criteria:**
+- ✓ esbuild compiles JS/JSX from `app/javascript/` and outputs to `app/assets/builds/`
+- ✓ Tailwind CSS processes utility classes and outputs to `app/assets/builds/`
+- ✓ `bin/dev` starts esbuild and Tailwind watchers alongside Rails and Sidekiq
+- ✓ A test React component renders in the browser (e.g. "Chat loading..." placeholder)
+- ✓ Existing landing page restyled with Tailwind (no more vanilla CSS)
+- ✓ Devise views inherit Tailwind styling (clean forms, not browser defaults)
+- ✓ Mobile-responsive at 375px width
 
 ---
 
@@ -743,20 +760,20 @@ Create a social media post for X or LinkedIn: project description, key features,
 
 | Phase | Tickets | P0 Count | Estimated Hours |
 |---|---|---|---|
-| Phase 0: Foundation & Setup | 4 | 4 | 4 hours |
+| Phase 0: Foundation & Setup | 5 | 5 | 5.5 hours |
 | Phase 1: AI Chatbot Core | 7 | 6 | 14-18 hours |
 | Phase 2: Document Processing & OCR | 5 | 4 | 10-12 hours |
 | Phase 3: Intelligent Scheduling | 4 | 3 | 6-8 hours |
 | Phase 4: Emotional Support Layer | 4 | 2 | 6-8 hours |
 | Phase 5: Observability & Evals | 5 | 1 | 8-10 hours |
 | Phase 6: Polish, Deploy & Ship | 5 | 3 | 8-10 hours |
-| **TOTAL** | **34** | **23** | **56-70 hours** |
+| **TOTAL** | **35** | **24** | **57.5-71.5 hours** |
 
 ### 15.2 Priority Legend
 
 | Priority | Definition | Count |
 |---|---|---|
-| P0 — Must Have | Required for MVP and project submission. Cannot ship without these. | 23 |
+| P0 — Must Have | Required for MVP and project submission. Cannot ship without these. | 24 |
 | P1 — Should Have | Required for full feature set. Included in early submission (Day 4). | 11 |
 | P2 — Nice to Have | Polish items. Only if time permits after P0 and P1 are complete. | 0 |
 
