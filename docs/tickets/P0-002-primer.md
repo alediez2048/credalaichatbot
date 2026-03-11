@@ -1,4 +1,4 @@
-# P0-005 — Frontend toolchain: esbuild + Tailwind CSS + React
+# P0-002 — Frontend toolchain: esbuild + Tailwind CSS + React
 
 **Priority:** P0
 **Estimate:** 1.5 hours
@@ -26,11 +26,11 @@ Importmap cannot compile JSX. Switching to esbuild is a prerequisite for React.
 
 ## Prerequisites (BLOCKERS)
 
-| Ticket | Why it blocks P0-005 |
+| Ticket | Why it blocks P0-002 |
 |--------|----------------------|
 | **P0-001** | Rails app must exist with working Gemfile, asset pipeline, and views |
 
-This ticket is **independent** of P0-002/P0-003/P0-004 (AI service layer). It can run in parallel.
+This ticket is **independent** of P0-003/P0-004/P0-005 (AI service layer, prompts, observability). It can run in parallel.
 
 ---
 
@@ -217,8 +217,8 @@ Keep it clean and modern. Not flashy — professional.
 ## Files You Should NOT Modify
 
 - Models, migrations, or database config (P0-001 scope)
-- AI service layer (P0-002 scope)
-- Prompt configs (P0-003 scope)
+- AI service layer (P0-003 scope)
+- Prompt configs (P0-004 scope)
 - Chat functionality or Action Cable channels (P1-001 scope)
 
 ---
@@ -229,7 +229,7 @@ Keep it clean and modern. Not flashy — professional.
 - [ ] All acceptance criteria verified manually
 - [ ] `bin/dev` starts cleanly with all 5 processes
 - [ ] No vanilla CSS remains in `application.css` (fully replaced by Tailwind)
-- [ ] `DEVLOG.md` updated with P0-005 entry
+- [ ] `DEVLOG.md` updated with P0-002 entry
 - [ ] Feature branch pushed; PR ready for review
 
 ---
@@ -237,15 +237,15 @@ Keep it clean and modern. Not flashy — professional.
 ## Suggested Branch
 
 ```bash
-git switch -c feature/P0-005-frontend-toolchain
+git switch -c feature/P0-002-frontend-toolchain
 ```
 
 ---
 
-## Out of Scope for P0-005
+## Out of Scope for P0-002
 
 - Chat functionality (P1-001)
 - Action Cable streaming (P1-001)
 - Onboarding flow logic (P1-002)
-- LLM integration (P0-002)
+- LLM integration (P0-003)
 - Complex animations or transitions

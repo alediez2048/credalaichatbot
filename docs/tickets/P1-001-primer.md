@@ -20,12 +20,12 @@ Deliver a React chat UI mounted in the `/onboarding` view (set up by P1-000) whe
 | Ticket | Why it blocks P1-001 |
 |--------|----------------------|
 | **P0-001** | Rails app, PostgreSQL, Action Cable, `Message` model + migrations |
-| **P0-002** | `LLM::ChatService` (or equivalent) must expose a streaming path the channel can consume |
-| **P0-003** | Optional for first slice; system prompt can be stubbed until wired |
-| **P0-005** | esbuild + React + Tailwind toolchain — React cannot compile without esbuild |
+| **P0-002** | esbuild + React + Tailwind toolchain — React cannot compile without esbuild |
+| **P0-003** | `LLM::ChatService` (or equivalent) must expose a streaming path the channel can consume |
+| **P0-004** | Optional for first slice; system prompt can be stubbed until wired |
 | **P1-000** | Landing page + `/onboarding` route with chat container mount point |
 
-**If no app exists in the repo:** complete **P0-001** first (scaffold + `Message` + Action Cable handshake), then **P0-005** (frontend toolchain), then **P0-002** (LLM service), then **P1-000** (landing + routing), then implement P1-001.
+**If no app exists in the repo:** complete **P0-001** first (scaffold + `Message` + Action Cable handshake), then **P0-002** (frontend toolchain), then **P0-003** (LLM service), then **P1-000** (landing + routing), then implement P1-001.
 
 ---
 
@@ -91,7 +91,7 @@ Deliver a React chat UI mounted in the `/onboarding` view (set up by P1-000) whe
 1. PRD §6 Phase 0 and §7 Phase 1 (streaming + Message persistence)
 2. `presearch-appendix.md` — Action Cable / real-time decisions
 3. Existing `Message` model + migration after P0-001
-4. `LLM::ChatService` (or equivalent) streaming API after P0-002
+4. `LLM::ChatService` (or equivalent) streaming API after P0-003
 5. `.cursor/rules/agent-design.mdc` — state and turn handling
 
 ---

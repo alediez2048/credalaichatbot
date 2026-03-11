@@ -7,9 +7,9 @@
 | File | Use it for |
 |------|-------------|
 | **P0-001-primer.md** | Rails scaffold + DB: acceptance criteria and step-by-step setup (Ruby, Postgres, Redis, `.env`, `bundle`, `db:migrate`). |
-| **P0-005-primer.md** | Frontend toolchain: esbuild + Tailwind CSS + React setup, styling migration. |
+| **P0-002-primer.md** | Frontend toolchain: esbuild + Tailwind CSS + React setup, styling migration. |
 | **P1-000-primer.md** | Landing page + `/onboarding` route: deliverables, acceptance criteria, content spec. |
-| **P1-001-primer.md** | Chat UI + streaming: scope, prerequisites (P0-002 + P0-005 + P1-000), file hints. |
+| **P1-001-primer.md** | Chat UI + streaming: scope, prerequisites (P0-002 + P0-003 + P1-000), file hints. |
 | **DEVLOG.md** | What shipped per ticket, decisions, follow-ups. Update when you finish a ticket. |
 
 Before coding any ticket:
@@ -38,12 +38,12 @@ Before coding any ticket:
 
 ```
 P0-001 (scaffold) ✅ DONE
-├── P0-005 (esbuild + Tailwind + React) ← DO NEXT
+├── P0-002 (esbuild + Tailwind + React) ← DO NEXT
 │   └── P1-000 (landing page + routing)
-│       └── P1-001 (chat UI + streaming) — also needs P0-002
-├── P0-002 (LLM service + tools)
-│   ├── P0-003 (prompts)
-│   └── P0-004 (observability)
+│       └── P1-001 (chat UI + streaming) — also needs P0-003
+├── P0-003 (LLM service + tools)
+│   ├── P0-004 (prompts)
+│   └── P0-005 (observability)
 └── P1-005 (anonymous merge)
 ```
 

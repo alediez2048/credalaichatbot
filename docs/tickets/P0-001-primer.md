@@ -121,4 +121,4 @@ Open **http://localhost:3000**. You should see the landing page and Sign up / Si
 
 ## Next
 
-**P0-002** — LLM::ChatService, Tools::Router, tool YAML.
+**P0-002** — Frontend toolchain (esbuild + Tailwind + React), then **P0-003** — LLM::ChatService, Tools::Router, tool YAML.

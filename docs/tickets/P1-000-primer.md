@@ -19,7 +19,7 @@ Build the landing page at `/` and the `/onboarding` route so the app has a clear
 |--------|----------------------|
 | **P0-001** | Rails app, Devise auth, routes, base layout |
 
-P0-002/P0-003 are NOT blockers — the landing page and routing are independent of the AI service layer.
+P0-003/P0-004 are NOT blockers — the landing page and routing are independent of the AI service layer.
 
 ---
 
@@ -115,6 +115,6 @@ git switch -c feature/P1-000-landing-page
 ## Out of Scope for P1-000
 
 - React chat component (P1-001)
-- LLM integration (P0-002)
+- LLM integration (P0-003)
 - Onboarding orchestration (P1-002)
 - Auth gating on chat (P1-005)

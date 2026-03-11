@@ -258,7 +258,7 @@ Initialize Rails 7 app with PostgreSQL, Redis, Sidekiq, Action Cable, Devise. Cr
 
 ---
 
-### `P0-005` — Frontend toolchain: esbuild + Tailwind CSS + React
+### `P0-002` — Frontend toolchain: esbuild + Tailwind CSS + React
 **Priority: P0** | **Estimate: 1.5 hours**
 
 Replace Importmap with esbuild (via `jsbundling-rails`) to enable JSX/TSX compilation. Install Tailwind CSS (via `tailwindcss-rails` or npm). Add React and ReactDOM. Restyle the existing landing page and layout with Tailwind utility classes. Create the React mount point for the chat component.
@@ -274,7 +274,7 @@ Replace Importmap with esbuild (via `jsbundling-rails`) to enable JSX/TSX compil
 
 ---
 
-### `P0-002` — AI service layer & tool calling infrastructure
+### `P0-003` — AI service layer & tool calling infrastructure
 **Priority: P0** | **Estimate: 1.5 hours**
 
 Build the Tools::Router, Tools::SchemaValidator, LLM::ChatService, and LLM::ContextBuilder. Define all 9 tool schemas as YAML configs. Wire up OpenAI API with function calling.
@@ -288,7 +288,7 @@ Build the Tools::Router, Tools::SchemaValidator, LLM::ChatService, and LLM::Cont
 
 ---
 
-### `P0-003` — Prompt management system
+### `P0-004` — Prompt management system
 **Priority: P0** | **Estimate: 0.5 hours**
 
 Create config/prompts/ directory with YAML files for system prompt, tool definitions, emotional support templates, and document type schemas. Build a PromptLoader service that version-tracks which prompts are active.
@@ -300,7 +300,7 @@ Create config/prompts/ directory with YAML files for system prompt, tool definit
 
 ---
 
-### `P0-004` — Observability & tracing setup
+### `P0-005` — Observability & tracing setup
 **Priority: P0** | **Estimate: 0.5 hours**
 
 Integrate LangSmith or Langfuse. Instrument LLM::ChatService to log every API call with: input tokens, output tokens, latency, tool calls, model version, session ID, and trace ID.

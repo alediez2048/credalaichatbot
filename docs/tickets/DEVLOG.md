@@ -46,14 +46,14 @@ Single place to record what landed per ticket, decisions, and follow-ups.
 
 ---
 
-### P0-005 — Frontend toolchain: esbuild + Tailwind CSS + React
+### P0-002 — Frontend toolchain: esbuild + Tailwind CSS + React
 **Date:** _pending_
-**Branch:** feature/P0-005-frontend-toolchain
+**Branch:** feature/P0-002-frontend-toolchain
 
 **Status:** Primer created. Ready to implement (only depends on P0-001 ✅).
 
 **What shipped:**
-- `docs/tickets/P0-005-primer.md` — full setup guide, step-by-step, acceptance criteria
+- `docs/tickets/P0-002-primer.md` — full setup guide, step-by-step, acceptance criteria
 
 **Decisions:**
 - Replace Importmap with esbuild (jsbundling-rails) for JSX support
@@ -62,7 +62,7 @@ Single place to record what landed per ticket, decisions, and follow-ups.
 - @tailwindcss/forms plugin for clean Devise form styling
 
 **Follow-ups / debt:**
-- Execute P0-005 before P1-000 (landing page needs Tailwind)
+- Execute P0-002 before P1-000 (landing page needs Tailwind)
 
 ---
 
@@ -80,7 +80,7 @@ Single place to record what landed per ticket, decisions, and follow-ups.
 **Decisions:**
 - Form factor: landing at `/`, chat at `/onboarding`; server-rendered ERB
 - No auth required for `/onboarding`; auth deferred to document upload (P1-005)
-- Used scoped custom CSS initially — **will be replaced by Tailwind in P0-005**
+- Used scoped custom CSS initially — **will be replaced by Tailwind in P0-002**
 
 ---
 
@@ -88,7 +88,7 @@ Single place to record what landed per ticket, decisions, and follow-ups.
 **Date:** _pending_
 **Branch:** feature/P1-001-chat-streaming
 
-**Status:** Primer created; blocked until P0-002 and P1-000 complete.
+**Status:** Primer created; blocked until P0-003 and P1-000 complete.
 
 **What shipped:**
 - `docs/tickets/P1-001-primer.md` — scope, prerequisites, acceptance criteria, file hints
@@ -99,7 +99,7 @@ Single place to record what landed per ticket, decisions, and follow-ups.
 - Chat component mounts in `/onboarding` view created by P1-000
 
 **Follow-ups / debt:**
-- Run P0-002, then P1-000, before first commit on P1-001
+- Run P0-002 (frontend), P0-003 (LLM), then P1-000, before first commit on P1-001
 
 ---
 
