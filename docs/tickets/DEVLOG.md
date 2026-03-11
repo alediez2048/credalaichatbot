@@ -46,21 +46,41 @@ Single place to record what landed per ticket, decisions, and follow-ups.
 
 ---
 
-### P1-001 — Chat interface with streaming LLM responses
-**Date:** _pending_  
-**Branch:** feature/P1-001-chat-streaming  
+### P1-000 — Landing page & routing
+**Date:** _pending_
+**Branch:** feature/P1-000-landing-page
 
-**Status:** Kickstarted — primer created; implementation blocked until P0-001/P0-002 complete.
+**Status:** Primer created. Blocked on P0-001 completion (done) — ready to implement.
 
 **What shipped:**
-- `Docs/tickets/P1-001-primer.md` — scope, prerequisites, acceptance criteria, file hints
+- `docs/tickets/P1-000-primer.md` — scope, acceptance criteria, content spec
+
+**Decisions:**
+- Form factor defined: landing page (`/`) + full-screen chat (`/onboarding`)
+- Landing page is server-rendered ERB (no React); chat mount point at `/onboarding`
+- Anonymous users can access `/onboarding` — auth deferred to document upload (P1-005)
+
+**Follow-ups / debt:**
+- Styling approach TBD (Tailwind vs scoped CSS)
+
+---
+
+### P1-001 — Chat interface with streaming LLM responses
+**Date:** _pending_
+**Branch:** feature/P1-001-chat-streaming
+
+**Status:** Primer created; blocked until P0-002 and P1-000 complete.
+
+**What shipped:**
+- `docs/tickets/P1-001-primer.md` — scope, prerequisites, acceptance criteria, file hints
 
 **Decisions:**
 - Streaming via Action Cable from server-side LLM service (no client-direct OpenAI for stream)
 - Messages persisted on `Message` model tied to session
+- Chat component mounts in `/onboarding` view created by P1-000
 
 **Follow-ups / debt:**
-- Run P0-001 then P0-002 before first commit on P1-001
+- Run P0-002, then P1-000, before first commit on P1-001
 
 ---
 

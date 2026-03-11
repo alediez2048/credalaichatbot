@@ -9,21 +9,22 @@
 
 ## Goal
 
-Deliver a React chat UI mounted in a Rails view where the user sees their message immediately, the assistant reply streams token-by-token over Action Cable with a typing indicator, the thread auto-scrolls, layout works at 375px width, and every message is persisted via the `Message` model.
+Deliver a React chat UI mounted in the `/onboarding` view (set up by P1-000) where the user sees their message immediately, the assistant reply streams token-by-token over Action Cable with a typing indicator, the thread auto-scrolls, layout works at 375px width, and every message is persisted via the `Message` model.
 
 ---
 
 ## Prerequisites (BLOCKERS)
 
-**P1-001 cannot start until Phase 0 is in place.**
+**P1-001 cannot start until Phase 0 and P1-000 are in place.**
 
 | Ticket | Why it blocks P1-001 |
 |--------|----------------------|
 | **P0-001** | Rails app, PostgreSQL, Action Cable, `Message` model + migrations |
 | **P0-002** | `LLM::ChatService` (or equivalent) must expose a streaming path the channel can consume |
 | **P0-003** | Optional for first slice; system prompt can be stubbed until wired |
+| **P1-000** | Landing page + `/onboarding` route with chat container mount point |
 
-**If no app exists in the repo:** complete **P0-001** first (scaffold + `Message` + Action Cable handshake), then **P0-002** minimal streaming contract, then implement P1-001.
+**If no app exists in the repo:** complete **P0-001** first (scaffold + `Message` + Action Cable handshake), then **P0-002** minimal streaming contract, then **P1-000** (landing + routing), then implement P1-001.
 
 ---
 

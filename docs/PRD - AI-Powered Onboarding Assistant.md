@@ -7,8 +7,8 @@
 
 | Field | Value |
 |---|---|
-| **Version** | 1.0 |
-| **Date** | March 9, 2026 |
+| **Version** | 1.1 |
+| **Date** | March 10, 2026 |
 | **Author** | Alex Diez |
 | **Status** | ACTIVE |
 | **Category** | AI-SOLUTION |
@@ -23,25 +23,28 @@
 3. [Product Vision & Success Metrics](#3-product-vision--success-metrics)
 4. [User Personas](#4-user-personas)
 5. [Architecture Overview](#5-architecture-overview)
-6. [Phase 0 — Foundation & Setup (Day 1, Hours 0-4)](#6-phase-0--foundation--setup)
-7. [Phase 1 — AI Chatbot Core (Day 1, Hours 4-24)](#7-phase-1--ai-chatbot-core)
-8. [Phase 2 — Document Processing & OCR (Days 2-3)](#8-phase-2--document-processing--ocr)
-9. [Phase 3 — Intelligent Scheduling (Day 3-4)](#9-phase-3--intelligent-scheduling)
-10. [Phase 4 — Emotional Support Layer (Day 4-5)](#10-phase-4--emotional-support-layer)
-11. [Phase 5 — Observability & Evals (Day 5-6)](#11-phase-5--observability--evals)
-12. [Phase 6 — Polish, Deploy & Ship (Day 6-7)](#12-phase-6--polish-deploy--ship)
-13. [Risk Register](#13-risk-register)
-14. [Appendices](#14-appendices)
+6. [Form Factor & User Journey](#6-form-factor--user-journey)
+7. [Phase 0 — Foundation & Setup (Day 1, Hours 0-4)](#7-phase-0--foundation--setup)
+8. [Phase 1 — AI Chatbot Core (Day 1, Hours 4-24)](#8-phase-1--ai-chatbot-core)
+9. [Phase 2 — Document Processing & OCR (Days 2-3)](#9-phase-2--document-processing--ocr)
+10. [Phase 3 — Intelligent Scheduling (Day 3-4)](#10-phase-3--intelligent-scheduling)
+11. [Phase 4 — Emotional Support Layer (Day 4-5)](#11-phase-4--emotional-support-layer)
+12. [Phase 5 — Observability & Evals (Day 5-6)](#12-phase-5--observability--evals)
+13. [Phase 6 — Polish, Deploy & Ship (Day 6-7)](#13-phase-6--polish-deploy--ship)
+14. [Risk Register](#14-risk-register)
+15. [Appendices](#15-appendices)
 
 ---
 
 ## 1. Executive Summary
 
-This PRD defines the requirements, architecture, and delivery plan for an AI-Powered Onboarding Assistant — a conversational system that guides users through multi-step onboarding workflows using LLM-based chat, OCR document processing, intelligent scheduling, and emotional support content.
+This PRD defines the requirements, architecture, and delivery plan for an AI-Powered Onboarding Assistant — a standalone web application with a landing page and full-screen chatbot experience that guides users through multi-step onboarding workflows using LLM-based chat, OCR document processing, intelligent scheduling, and emotional support content.
 
 The product is architected to align with Credal.ai's secure enterprise AI agent platform. It demonstrates the type of domain-specific, tool-calling AI agent that enterprises build on Credal: multi-step orchestration, document processing, compliance awareness, and security-first data handling.
 
-The primary demo use case is HR Employee Onboarding — new hires upload ID documents, have data auto-extracted via OCR, schedule orientation sessions, and receive empathetic guidance throughout — mapping directly to Credal's own Onboarding Buddy and Benefits Buddy patterns.
+The primary demo use case is HR Employee Onboarding — new hires land on a welcoming page, click "Start Onboarding," and enter a chat-first experience where they upload ID documents, have data auto-extracted via OCR, schedule orientation sessions, and receive empathetic guidance throughout — mapping directly to Credal's own Onboarding Buddy and Benefits Buddy patterns.
+
+**Form factor: Landing page → full-screen chatbot. The chat IS the onboarding experience.**
 
 **Delivery: 7-day sprint. Solo developer. MVP at 24 hours, full feature set at Day 4, final polish and deployment by Day 7.**
 
@@ -173,7 +176,68 @@ Write operations require user confirmation before execution. All tool calls pass
 
 ---
 
-## 6. Phase 0 — Foundation & Setup
+## 6. Form Factor & User Journey
+
+### 6.1 Product Form Factor
+
+The application is a **standalone web app** with two screens:
+
+1. **Landing page** (`/`) — A brief, polished hero section that explains what the assistant does and provides a clear call-to-action to begin onboarding. Includes sign up / sign in links. This is the first thing demo viewers and evaluators see.
+2. **Chat interface** (`/onboarding`) — A full-screen, chat-first experience where the AI assistant guides the user through the entire onboarding flow. This is the core product. All data collection, document upload, scheduling, and emotional support happen inside the chat.
+
+This is **not**:
+- A Credal.ai marketing clone or brand replica
+- A multi-page form wizard with a chatbot sidebar
+- An embeddable chat widget
+
+The chat IS the onboarding. The landing page provides context and a professional entry point for the demo.
+
+### 6.2 Screen-by-Screen User Journey
+
+```
+Landing Page (/)
+├── Hero: "AI-Powered Onboarding Assistant"
+├── Subtext: "Complete your onboarding in minutes with AI guidance"
+├── CTA: [Start Onboarding] → redirects to /onboarding
+├── Secondary: [Sign In] → Devise login → redirects to /onboarding
+└── Footer: Built for Credal.ai · Powered by GPT-4o
+
+Chat Interface (/onboarding)
+├── Full-screen chat layout (messages + input bar)
+├── Anonymous users can chat immediately
+├── Auth required before document upload (inline prompt)
+├── Streaming AI responses with typing indicator
+├── Inline document upload + OCR preview
+├── Inline scheduling slot selection
+├── Progress indicator (steps completed)
+└── Completion screen with summary + calendar download
+```
+
+### 6.3 Navigation & Layout
+
+- **Landing page**: Minimal nav — logo, sign in/sign up links. No sidebar, no complex navigation.
+- **Chat interface**: No nav bar in the chat view — full-screen immersive experience. A small back/exit link in the header. Progress indicator (e.g., "Step 2 of 5") visible but unobtrusive.
+- **Admin dashboard** (P1, post-MVP): Separate `/admin` route behind role check. Not part of the user-facing product.
+
+### 6.4 Golden Path Demo Flow (3-5 minutes)
+
+This is the exact sequence shown in the demo video:
+
+1. **Landing page** → viewer sees a clean, professional page explaining the product
+2. **Click "Start Onboarding"** → transition to the chat interface
+3. **AI greets the user** → "Welcome! I'll help you complete your onboarding. Let's start with some basic information."
+4. **Conversational data collection** → name, email, department (2-3 turns)
+5. **AI prompts document upload** → "Could you upload a photo of your driver's license?"
+6. **User uploads ID** → OCR processes in background, progress shown inline
+7. **AI presents extracted data** → "I found the following — please confirm or correct"
+8. **Emotional support moment** → "You're doing great — just two more steps!"
+9. **AI initiates scheduling** → "Let's book your orientation. Here are available slots."
+10. **User selects slot** → AI confirms booking with summary
+11. **Completion** → celebratory message, next steps, calendar download link
+
+---
+
+## 7. Phase 0 — Foundation & Setup
 
 **Day 1, Hours 0-4 | 4 tickets | Estimated: 4 hours**
 
@@ -231,16 +295,31 @@ Integrate LangSmith or Langfuse. Instrument LLM::ChatService to log every API ca
 
 ---
 
-## 7. Phase 1 — AI Chatbot Core
+## 8. Phase 1 — AI Chatbot Core
 
-**Day 1, Hours 4-24 | 6 tickets | Estimated: 12-16 hours | MVP GATE**
+**Day 1, Hours 4-24 | 7 tickets | Estimated: 14-18 hours | MVP GATE**
+
+---
+
+### `P1-000` — Landing page & routing
+**Priority: P0** | **Estimate: 2 hours**
+
+Build the landing page at `/` with hero section, product description, and "Start Onboarding" CTA. Add `/onboarding` route that renders the chat view. Landing page uses Hotwire/server-rendered HTML (no React needed). Tailwind CSS or minimal custom styling for a clean, professional look. Mobile-responsive.
+
+**Acceptance Criteria:**
+- ✓ `/` shows a polished landing page with product title, description, and CTA button
+- ✓ "Start Onboarding" links to `/onboarding` (chat view)
+- ✓ Sign in / Sign up links visible on landing page
+- ✓ Authenticated users clicking CTA go directly to `/onboarding`
+- ✓ `/onboarding` renders the chat container (content filled by P1-001)
+- ✓ Works on mobile viewport (375px width)
 
 ---
 
 ### `P1-001` — Chat interface with streaming LLM responses
 **Priority: P0** | **Estimate: 4 hours**
 
-Build the React chat component mounted in a Rails view. Messages stream token-by-token via Action Cable. Includes typing indicator, message bubbles (user vs assistant), and auto-scroll. Mobile-responsive.
+Build the React chat component mounted in the `/onboarding` Rails view. Messages stream token-by-token via Action Cable. Includes typing indicator, message bubbles (user vs assistant), and auto-scroll. Full-screen chat layout with minimal chrome. Mobile-responsive.
 
 **Acceptance Criteria:**
 - ✓ User types a message and sees it appear immediately
@@ -316,7 +395,7 @@ Implement Rack::Attack to rate-limit: 30 LLM turns per session, 5 document uploa
 
 ---
 
-## 8. Phase 2 — Document Processing & OCR
+## 9. Phase 2 — Document Processing & OCR
 
 **Days 2-3 | 5 tickets | Estimated: 10-12 hours**
 
@@ -387,7 +466,7 @@ Design document types as YAML configuration files. Each config defines: expected
 
 ---
 
-## 9. Phase 3 — Intelligent Scheduling
+## 10. Phase 3 — Intelligent Scheduling
 
 **Days 3-4 | 4 tickets | Estimated: 6-8 hours**
 
@@ -445,7 +524,7 @@ Handle rescheduling requests in the chat. Cancel existing booking (release the s
 
 ---
 
-## 10. Phase 4 — Emotional Support Layer
+## 11. Phase 4 — Emotional Support Layer
 
 **Days 4-5 | 4 tickets | Estimated: 6-8 hours**
 
@@ -502,7 +581,7 @@ Define escalation logic: after 3 failed parses → offer structured form fallbac
 
 ---
 
-## 11. Phase 5 — Observability & Evals
+## 12. Phase 5 — Observability & Evals
 
 **Days 5-6 | 5 tickets | Estimated: 8-10 hours**
 
@@ -573,7 +652,7 @@ Add a GitHub Actions workflow that detects changes to config/prompts/ files and 
 
 ---
 
-## 12. Phase 6 — Polish, Deploy & Ship
+## 13. Phase 6 — Polish, Deploy & Ship
 
 **Days 6-7 | 5 tickets | Estimated: 8-10 hours**
 
@@ -595,7 +674,7 @@ Deploy to Render or Heroku with: PostgreSQL, Redis, Sidekiq worker, Action Cable
 ### `P6-002` — Demo video recording (3-5 min)
 **Priority: P0** | **Estimate: 2 hours**
 
-Record the golden path demo: signup → chat greeting → data collection → document upload + OCR → field verification → scheduling → emotional support moment → completion. Include one error recovery scenario (bad photo → retry). Show observability dashboard briefly.
+Record the golden path demo: landing page → "Start Onboarding" CTA → chat greeting → data collection → document upload + OCR → field verification → scheduling → emotional support moment → completion. Include one error recovery scenario (bad photo → retry). Show observability dashboard briefly.
 
 **Acceptance Criteria:**
 - ✓ Video shows the complete onboarding flow in under 5 minutes
@@ -644,7 +723,7 @@ Create a social media post for X or LinkedIn: project description, key features,
 
 ---
 
-## 13. Risk Register
+## 14. Risk Register
 
 | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|
@@ -658,30 +737,30 @@ Create a social media post for X or LinkedIn: project description, key features,
 
 ---
 
-## 14. Appendices
+## 15. Appendices
 
-### 14.1 Ticket Summary by Phase
+### 15.1 Ticket Summary by Phase
 
 | Phase | Tickets | P0 Count | Estimated Hours |
 |---|---|---|---|
 | Phase 0: Foundation & Setup | 4 | 4 | 4 hours |
-| Phase 1: AI Chatbot Core | 6 | 5 | 12-16 hours |
+| Phase 1: AI Chatbot Core | 7 | 6 | 14-18 hours |
 | Phase 2: Document Processing & OCR | 5 | 4 | 10-12 hours |
 | Phase 3: Intelligent Scheduling | 4 | 3 | 6-8 hours |
 | Phase 4: Emotional Support Layer | 4 | 2 | 6-8 hours |
 | Phase 5: Observability & Evals | 5 | 1 | 8-10 hours |
 | Phase 6: Polish, Deploy & Ship | 5 | 3 | 8-10 hours |
-| **TOTAL** | **33** | **22** | **54-68 hours** |
+| **TOTAL** | **34** | **23** | **56-70 hours** |
 
-### 14.2 Priority Legend
+### 15.2 Priority Legend
 
 | Priority | Definition | Count |
 |---|---|---|
-| P0 — Must Have | Required for MVP and project submission. Cannot ship without these. | 22 |
+| P0 — Must Have | Required for MVP and project submission. Cannot ship without these. | 23 |
 | P1 — Should Have | Required for full feature set. Included in early submission (Day 4). | 11 |
 | P2 — Nice to Have | Polish items. Only if time permits after P0 and P1 are complete. | 0 |
 
-### 14.3 Related Documents
+### 15.3 Related Documents
 
 - Pre-Search Appendix (presearch-appendix.md) — All 18 architecture decisions with rationale
 - Architecture Interview (interviews.md) — 30 deep-dive questions across 3 rounds
