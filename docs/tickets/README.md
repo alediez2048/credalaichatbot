@@ -9,6 +9,8 @@
 | **P0-001-primer.md** | Rails scaffold + DB: acceptance criteria and step-by-step setup (Ruby, Postgres, Redis, `.env`, `bundle`, `db:migrate`). |
 | **P0-002-primer.md** | Frontend toolchain: esbuild + Tailwind CSS + React setup, styling migration. |
 | **P0-003-primer.md** | AI service layer: Tools::Router, SchemaValidator, LLM::ChatService, ContextBuilder, 9 tools in YAML, OpenAI function calling. |
+| **P0-004-primer.md** | Prompt management: system prompt in YAML, PromptLoader, version-tracking; no hardcoded prompts. |
+| **P0-005-primer.md** | Observability & tracing: LangSmith or Langfuse, instrument ChatService (tokens, latency, session_id). |
 | **P1-000-primer.md** | Landing page + `/onboarding` route: deliverables, acceptance criteria, content spec. |
 | **P1-001-primer.md** | Chat UI + streaming: scope, prerequisites (P0-002 + P0-003 + P1-000), file hints. |
 | **DEVLOG.md** | What shipped per ticket, decisions, follow-ups. Update when you finish a ticket. |

@@ -127,4 +127,26 @@ Single place to record what landed per ticket, decisions, and follow-ups.
 
 ---
 
+### P0-005 — Observability & tracing setup
+**Date:** 2026-03-11  
+**Branch:** feature/P0-005-observability-tracing
+
+**What shipped:**
+- **Langfuse** integrated: `langfuse` gem, `config/initializers/langfuse.rb` (configures only when `LANGFUSE_SECRET_KEY` set)
+- `Observability::Tracer` — `trace_llm_call(session_id:, user_id:, model:, messages:) { block }`; no-op when env key blank; creates trace + generation, records usage (prompt/completion/total tokens), latency, tool_calls, model
+- `LLM::ChatService#chat` — new optional kwargs `session_id: nil`, `user_id: nil`; wraps OpenAI call in `Tracer.trace_llm_call` so every LLM call is traced when Langfuse is configured
+- `.env.example`: `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, optional `LANGFUSE_HOST`
+- Unit tests: `Observability::Tracer` (enabled? when key set/unset, trace_llm_call yields and returns block result when disabled, accepts session_id/user_id)
+
+**Decisions:**
+- Langfuse chosen over LangSmith (Ruby SDK available, open-source)
+- Tracing is no-op when `LANGFUSE_SECRET_KEY` is blank (tests and dev without keys pass)
+- Session ID and user ID passed from future callers (e.g. controller in P1-001); not required for trace to be created
+
+**Follow-ups / debt:**
+- With real API keys, trigger one chat and confirm trace appears in Langfuse dashboard with tokens, latency, session_id
+- P1-004 will log errors into tracing (error category)
+
+---
+
 *(Append new tickets above this line, oldest at bottom.)*
