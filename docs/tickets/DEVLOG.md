@@ -47,22 +47,46 @@ Single place to record what landed per ticket, decisions, and follow-ups.
 ---
 
 ### P0-002 — Frontend toolchain: esbuild + Tailwind CSS + React
-**Date:** _pending_
+**Date:** 2026-03-10  
 **Branch:** feature/P0-002-frontend-toolchain
 
-**Status:** Primer created. Ready to implement (only depends on P0-001 ✅).
-
 **What shipped:**
-- `docs/tickets/P0-002-primer.md` — full setup guide, step-by-step, acceptance criteria
+- Replaced `importmap-rails` with `jsbundling-rails`; removed `config/importmap.rb`
+- `package.json`: esbuild, Tailwind, React, ReactDOM, @hotwired/turbo; build + build:css + build:css:watch scripts
+- `tailwind.config.js` + `application.tailwind.css`; built output to `app/assets/builds/`
+- Layout, landing (`home#index`), and onboarding chat view restyled with Tailwind; nav with Sign in/up or user + Sign out
+- `OnboardingController#chat` + route `get '/onboarding'`; view with `#chat-root` for React
+- `app/javascript/components/ChatApp.jsx` — React placeholder rendering "Chat loading..." on `/onboarding`
+- `application.js` imports Turbo + ChatApp; esbuild build with `--loader:.jsx=jsx`
+- Procfile.dev: added `js` (esbuild --watch) and `css` (tailwind --watch)
+- Devise views: `sessions/new`, `registrations/new`, shared `_links`, `_error_messages` with Tailwind form styling
 
 **Decisions:**
-- Replace Importmap with esbuild (jsbundling-rails) for JSX support
-- Tailwind CSS replaces all vanilla CSS — utility-first, no Bootstrap
-- React only for chat component; landing page stays ERB + Tailwind
-- @tailwindcss/forms plugin for clean Devise form styling
+- Replace Importmap with esbuild for JSX; Tailwind replaces vanilla CSS
+- React only for chat mount; landing and layout are ERB + Tailwind
+- Asset pipeline serves from `app/assets/builds/` (application.js + application.css)
+- React only for chat mount; landing and layout are ERB + Tailwind
+- Asset pipeline serves from `app/assets/builds/` (application.js + application.css)
 
-**Follow-ups / debt:**
-- Execute P0-002 before P1-000 (landing page needs Tailwind)
+---
+
+### P0-003 — AI service layer & tool calling infrastructure
+**Date:** 2026-03-10  
+**Branch:** feature/P0-003-llm-tool-calling
+
+**What shipped:**
+- `config/prompts/tool_definitions.yml` — all 9 tools (OpenAI function-call schema)
+- `Tools::SchemaValidator` — validates tool name + params against YAML; returns structured errors; `definitions_for_openai` for API
+- `Tools::Router` — maps tool name to stub handler; validates via SchemaValidator; parses JSON arguments; returns `{ success:, data: }` or `{ success: false, error: }`
+- `LLM::ContextBuilder.build` — system_prompt + history + current_message → messages array for OpenAI
+- `LLM::ChatService` — loads tool definitions from SchemaValidator; OpenAI client (when OPENAI_API_KEY set); `chat(messages:)` returns raw response with `choices`; nil client when no key
+- Gemfile: `openai` gem; `.env.example`: OPENAI_API_KEY, OPENAI_MODEL
+- Unit tests: SchemaValidator (unknown tool, missing required, tool_names, definitions_for_openai), Router (call stub, invalid params, JSON args), ContextBuilder (system, history, current)
+- Integration test: YAML load 9 tools; full path (ContextBuilder → ChatService → optional tool_calls → Router); works without API key (empty choices)
+
+**Decisions:**
+- Tool handlers are stubs returning `{ success: true, data: { tool:, message: } }`; full logic in P1-002, P2, etc.
+- Services under `app/services/` (tools/, llm/) for autoload
 
 ---
 

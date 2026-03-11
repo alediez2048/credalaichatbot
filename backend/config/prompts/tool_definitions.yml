@@ -1,0 +1,128 @@
+# OpenAI function-calling tool definitions (P0-003)
+# Each entry becomes a tool in the API request.
+
+- name: startOnboarding
+  description: Initialize a new onboarding session for the user.
+  parameters:
+    type: object
+    properties:
+      userId:
+        type: string
+        description: User or session identifier.
+      sessionId:
+        type: string
+        description: Optional session ID to reuse.
+    required: []
+
+- name: extractDocumentData
+  description: Process an uploaded document via OCR to extract structured data.
+  parameters:
+    type: object
+    properties:
+      imageFile:
+        type: string
+        description: Reference or URL of the uploaded image file.
+      documentType:
+        type: string
+        description: Type of document (e.g. drivers_license, w4).
+    required:
+      - imageFile
+      - documentType
+
+- name: validateExtractedData
+  description: Check extracted fields against the form schema.
+  parameters:
+    type: object
+    properties:
+      fields:
+        type: object
+        description: Key-value map of extracted field names and values.
+      formSchema:
+        type: string
+        description: Schema or document type to validate against.
+    required:
+      - fields
+
+- name: getAvailableSlots
+  description: Fetch available appointment slots for a date range and service type.
+  parameters:
+    type: object
+    properties:
+      dateRange:
+        type: object
+        description: Start and end date for the range.
+      serviceType:
+        type: string
+        description: Type of service or appointment.
+    required: []
+
+- name: bookAppointment
+  description: Book an appointment for the user in a given slot.
+  parameters:
+    type: object
+    properties:
+      userId:
+        type: string
+        description: User identifier.
+      slotId:
+        type: string
+        description: ID of the slot to book.
+      serviceType:
+        type: string
+        description: Type of service.
+    required:
+      - userId
+      - slotId
+
+- name: detectUserSentiment
+  description: Analyze the user's emotional state from recent message history.
+  parameters:
+    type: object
+    properties:
+      messageHistory:
+        type: array
+        description: Recent messages for sentiment analysis.
+    required: []
+
+- name: getSupportContent
+  description: Retrieve emotional support content for the current context.
+  parameters:
+    type: object
+    properties:
+      context:
+        type: string
+        description: Current onboarding step or context.
+      sentimentLevel:
+        type: string
+        description: Detected sentiment level (e.g. neutral, frustrated).
+    required: []
+
+- name: saveOnboardingProgress
+  description: Persist the current form state for the user's onboarding session.
+  parameters:
+    type: object
+    properties:
+      userId:
+        type: string
+        description: User or session identifier.
+      step:
+        type: string
+        description: Current onboarding step name.
+      data:
+        type: object
+        description: Key-value map of collected field names and values.
+    required:
+      - userId
+      - step
+      - data
+
+- name: getOnboardingState
+  description: Load saved onboarding progress for session resumption.
+  parameters:
+    type: object
+    properties:
+      userId:
+        type: string
+        description: User or session identifier.
+    required:
+      - userId

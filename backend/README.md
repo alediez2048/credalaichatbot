@@ -1,18 +1,33 @@
 # Onboarding Assistant — Rails backend (P0-001)
 
-## If `bundle install` fails with "ruby (>= 3.1.0)"
+## Use the correct Ruby (3.2)
 
-You're on an older Ruby. Switch to Ruby 3.2, then run `bundle install` again:
+The project needs **Ruby 3.2**. If `ruby -v` shows 2.6 or 3.0, your shell is using the wrong Ruby.
 
-**macOS (Homebrew):**
+**1. Install Ruby 3.2 (if needed)**  
 ```bash
 brew install ruby@3.2
+```
+
+**2. Use it in this terminal**  
+```bash
 export PATH="/opt/homebrew/opt/ruby@3.2/bin:$PATH"
 ruby -v   # should show 3.2.x
-# From repo root: cd backend && bundle install
-# If you're already in backend/: just bundle install
-bundle install
 ```
+
+**3. Make it default in every new terminal**  
+Add this line to your `~/.zshrc` (then run `source ~/.zshrc` or open a new tab):
+```bash
+export PATH="/opt/homebrew/opt/ruby@3.2/bin:$PATH"
+```
+
+Then from `backend/` run `bundle install` and `bundle exec rails test`.
+
+---
+
+## If `bundle install` fails with "ruby (>= 3.1.0)"
+
+You're still on an older Ruby. Do step 2 above in this terminal, then run `bundle install` again.
 
 **Or use rbenv / asdf:** install Ruby 3.2, then `cd backend && bundle install`.
 
@@ -46,6 +61,9 @@ bin/rails server -b 0.0.0.0
 ```bash
 cd backend
 bundle install
+npm install
+npm run build
+npm run build:css
 cp .env.example .env   # edit DATABASE_* (see below)
 bin/rails db:create db:migrate
 ```
@@ -84,19 +102,26 @@ cd backend && bin/rails server
 cd backend && bundle exec sidekiq
 ```
 
-**Option B — `bin/dev`** (starts all via Procfile.dev; requires `redis-server` on PATH or run Redis separately)
+**Option B — `bin/dev`** (starts web, esbuild watch, Tailwind watch, Redis, Sidekiq)
 
 ```bash
 bin/dev
 ```
 
-Open http://localhost:3000 — homepage with Devise sign up / sign in.
+Requires Node.js (for `npm run build` and Tailwind). First time: run `npm install && npm run build && npm run build:css` so built assets exist; then `bin/dev` keeps JS and CSS rebuilding on change.
+
+Open http://localhost:3000 — landing page, Sign in/up, and `/onboarding` chat placeholder.
 
 ## Action Cable
 
 - Adapter: **Redis** in development (`config/cable.yml`).
-- Ping channel: subscribe to `PingChannel` after Action Cable is wired in JS (post–`rails importmap:install` if needed).
+- Ping channel: subscribe to `PingChannel`; chat UI uses React (P1-001).
 - Verify WebSocket: browser devtools → Network → WS → `/cable`.
+
+## Frontend (P0-002)
+
+- **JS:** esbuild bundles `app/javascript/application.js` (Turbo + React ChatApp) to `app/assets/builds/application.js`.
+- **CSS:** Tailwind builds `application.tailwind.css` to `app/assets/builds/application.css`. Run `npm run build` and `npm run build:css` (or use `bin/dev` which runs watchers).
 
 ## Core tables
 

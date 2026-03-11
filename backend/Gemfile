@@ -17,9 +17,11 @@ gem "turbo-rails"
 gem "jbuilder"
 gem "bootsnap", require: false
 gem "dotenv-rails", groups: [:development, :test]
+gem "openai"
 
 group :development, :test do
   gem "debug", platforms: :mri
+  gem "minitest", "< 6"  # Rails 7.2 test runner expects Minitest 5 run(reporter, options) signature
 end
 
 group :development do

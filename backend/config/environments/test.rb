@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
+require "securerandom"
+
 Rails.application.configure do
+  config.secret_key_base = ENV["SECRET_KEY_BASE"].presence || "0" * 64
   config.enable_reloading = true
   config.eager_load = ENV["CI"].present?
   config.public_file_server.enabled = true
