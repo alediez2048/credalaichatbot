@@ -12,9 +12,8 @@ gem "redis", ">= 4.0"
 gem "sidekiq", "~> 7.0"
 gem "devise", "~> 4.9"
 gem "sprockets-rails"
-gem "importmap-rails"
+gem "jsbundling-rails"
 gem "turbo-rails"
-gem "stimulus-rails"
 gem "jbuilder"
 gem "bootsnap", require: false
 gem "dotenv-rails", groups: [:development, :test]
