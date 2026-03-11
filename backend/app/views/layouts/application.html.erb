@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <title>Onboarding Assistant</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -9,6 +9,21 @@
     <%= javascript_importmap_tags %>
   </head>
   <body>
+    <header class="app-header">
+      <nav class="app-nav">
+        <%= link_to "Onboarding Assistant", root_path, class: "app-nav-logo" %>
+        <div class="app-nav-links">
+          <% if user_signed_in? %>
+            <span class="app-nav-user"><%= current_user.email %></span>
+            <%= button_to "Sign out", destroy_user_session_path, method: :delete, class: "app-nav-btn" %>
+          <% else %>
+            <%= link_to "Sign in", new_user_session_path, class: "app-nav-link" %>
+            <span class="app-nav-sep">|</span>
+            <%= link_to "Sign up", new_user_registration_path, class: "app-nav-link" %>
+          <% end %>
+        </div>
+      </nav>
+    </header>
     <p class="notice"><%= notice %></p>
     <p class="alert"><%= alert %></p>
     <%= yield %>

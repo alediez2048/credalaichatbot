@@ -1,1 +1,161 @@
-body { font-family: system-ui, sans-serif; margin: 2rem; }
+/* Base */
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  margin: 0;
+  color: #1a1a1a;
+  line-height: 1.5;
+}
+
+.notice, .alert {
+  padding: 0.75rem 1rem;
+  margin: 0;
+  font-size: 0.9rem;
+}
+.notice { background: #e8f5e9; color: #2e7d32; }
+.alert { background: #ffebee; color: #c62828; }
+
+/* Nav */
+.app-header {
+  border-bottom: 1px solid #e0e0e0;
+  background: #fff;
+}
+.app-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0.75rem 1rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.app-nav-logo {
+  font-weight: 600;
+  color: #1a1a1a;
+  text-decoration: none;
+  font-size: 1.1rem;
+}
+.app-nav-logo:hover { color: #333; }
+.app-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.app-nav-link {
+  color: #1565c0;
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+.app-nav-link:hover { text-decoration: underline; }
+.app-nav-sep { color: #999; font-size: 0.9rem; }
+.app-nav-user {
+  font-size: 0.9rem;
+  color: #555;
+  margin-right: 0.5rem;
+}
+.app-nav-btn {
+  font-size: 0.9rem;
+  padding: 0.35rem 0.75rem;
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.app-nav-btn:hover { background: #eee; }
+
+/* Landing page */
+.landing {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 2rem 1rem 3rem;
+}
+.landing-hero {
+  margin-bottom: 2.5rem;
+}
+.landing-title {
+  font-size: clamp(1.75rem, 5vw, 2.25rem);
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+  line-height: 1.2;
+}
+.landing-tagline {
+  font-size: 1.25rem;
+  color: #333;
+  margin: 0 0 1rem;
+}
+.landing-description {
+  color: #555;
+  margin: 0 0 1.5rem;
+}
+.landing-cta {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background: #1565c0;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+.landing-cta:hover {
+  background: #0d47a1;
+  color: #fff;
+}
+.landing-features-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 0.75rem;
+}
+.landing-features-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: #555;
+}
+.landing-features-list li { margin-bottom: 0.35rem; }
+.landing-footer {
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #eee;
+  font-size: 0.85rem;
+  color: #777;
+}
+
+/* Onboarding chat page (container for P1-001) */
+.onboarding-chat-page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1rem;
+  min-height: calc(100vh - 120px);
+}
+.chat-container {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  min-height: 400px;
+  background: #fafafa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.chat-placeholder {
+  color: #888;
+  margin: 0;
+}
+
+/* Mobile: 375px and up */
+@media (max-width: 480px) {
+  .app-nav {
+    padding: 0.5rem 0.75rem;
+  }
+  .app-nav-logo { font-size: 1rem; }
+  .landing { padding: 1.25rem 0.75rem 2rem; }
+  .landing-title { font-size: 1.5rem; }
+  .landing-tagline { font-size: 1.1rem; }
+  .landing-cta {
+    display: block;
+    text-align: center;
+    padding: 0.85rem 1rem;
+  }
+  .onboarding-chat-page { padding: 0.75rem; }
+  .chat-container { min-height: 360px; }
+}

@@ -47,21 +47,20 @@ Single place to record what landed per ticket, decisions, and follow-ups.
 ---
 
 ### P1-000 — Landing page & routing
-**Date:** _pending_
+**Date:** 2026-03-08  
 **Branch:** feature/P1-000-landing-page
 
-**Status:** Primer created. Blocked on P0-001 completion (done) — ready to implement.
-
 **What shipped:**
-- `docs/tickets/P1-000-primer.md` — scope, acceptance criteria, content spec
+- Landing page at `/`: hero, tagline, description, "Start Onboarding →" CTA, features list, footer
+- Route `get '/onboarding', to: 'onboarding#chat'`; `OnboardingController#chat` (no auth gate)
+- `app/views/onboarding/chat.html.erb` with `#chat-root` container (placeholder for P1-001)
+- Layout: nav with logo, Sign in | Sign up (or user email + Sign out when signed in)
+- Scoped CSS: landing + nav + chat container, mobile-responsive (375px)
 
 **Decisions:**
-- Form factor defined: landing page (`/`) + full-screen chat (`/onboarding`)
-- Landing page is server-rendered ERB (no React); chat mount point at `/onboarding`
-- Anonymous users can access `/onboarding` — auth deferred to document upload (P1-005)
-
-**Follow-ups / debt:**
-- Styling approach TBD (Tailwind vs scoped CSS)
+- Form factor: landing at `/`, chat at `/onboarding`; server-rendered ERB, no React on landing
+- No auth required for `/onboarding`; auth deferred to document upload (P1-005)
+- Used scoped custom CSS (no Tailwind) for landing and chat container
 
 ---
 

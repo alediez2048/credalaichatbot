@@ -1,9 +1,26 @@
-<h1>AI-Powered Onboarding Assistant</h1>
-<p>P0-001 scaffold — Rails boots. Action Cable consumer can subscribe from this page once channels are wired.</p>
-<% if user_signed_in? %>
-  <p>Signed in as <%= current_user.email %></p>
-  <%= button_to "Sign out", destroy_user_session_path, method: :delete %>
-<% else %>
-  <%= link_to "Sign up", new_user_registration_path %> |
-  <%= link_to "Sign in", new_user_session_path %>
-<% end %>
+<main class="landing">
+  <section class="landing-hero">
+    <h1 class="landing-title">AI-Powered Onboarding Assistant</h1>
+    <p class="landing-tagline">Complete your employee onboarding in minutes — not hours.</p>
+    <p class="landing-description">
+      Our AI assistant guides you through every step: data collection,
+      document verification, and appointment scheduling — with a
+      supportive, human touch.
+    </p>
+    <%= link_to "Start Onboarding →", onboarding_path, class: "landing-cta" %>
+  </section>
+
+  <section class="landing-features">
+    <h2 class="landing-features-title">Features</h2>
+    <ul class="landing-features-list">
+      <li>AI-guided conversational flow</li>
+      <li>Instant document scanning & data extraction</li>
+      <li>Smart appointment scheduling</li>
+      <li>Progress tracking & emotional support</li>
+    </ul>
+  </section>
+
+  <footer class="landing-footer">
+    Built for Credal.ai · Powered by GPT-4o
+  </footer>
+</main>
