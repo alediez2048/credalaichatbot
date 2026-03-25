@@ -29,3 +29,4 @@ group :development do
   gem "web-console"
   gem "foreman"
 end
+gem "rack-attack"

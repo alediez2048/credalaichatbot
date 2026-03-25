@@ -19,6 +19,18 @@ class OnboardingChatChannel < ApplicationCable::Channel
     body = data["body"].to_s.strip
     return if body.blank?
 
+    # Per-session rate limiting
+    rate_check = Onboarding::RateLimiter.check!(@onboarding_session.id)
+    unless rate_check[:allowed]
+      broadcast_to @onboarding_session, {
+        type: "error",
+        message: rate_check[:message],
+        retryable: true,
+        category: :rate_limit
+      }
+      return
+    end
+
     @onboarding_session.messages.create!(role: "user", content: body)
     broadcast_to @onboarding_session, { type: "start" }
 
