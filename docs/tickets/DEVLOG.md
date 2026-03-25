@@ -109,21 +109,26 @@ Single place to record what landed per ticket, decisions, and follow-ups.
 ---
 
 ### P1-001 — Chat interface with streaming LLM responses
-**Date:** _pending_
+**Date:** 2026-03-11  
 **Branch:** feature/P1-001-chat-streaming
 
-**Status:** Primer created; blocked until P0-003 and P1-000 complete.
-
 **What shipped:**
-- `docs/tickets/P1-001-primer.md` — scope, prerequisites, acceptance criteria, file hints
+- **OnboardingController#chat:** find or create `OnboardingSession` (by current_user or session[:onboarding_session_id]); pass `@onboarding_session` to view; view exposes `data-session-id` and `data-initial-messages` (JSON) on `#chat-root`
+- **LLM::ChatService#stream_chat:** streams token-by-token via OpenAI `stream_raw`; yields content deltas to block; no tools (streaming text only); no-op / error message when API key missing
+- **OnboardingChatChannel:** subscribe by `session_id`; `send_message(body)` persists user Message, builds context via ContextBuilder, calls ChatService#stream_chat, broadcasts `start` / `token` / `done` (with assistant Message id and content) / `error`; assistant message persisted on done
+- **React ChatApp:** subscribes to OnboardingChatChannel with session_id; reads initial messages from data attribute; optimistic user message on send; receives token/done/error; typing indicator (dots) while streaming; auto-scroll to bottom; message bubbles (user right/blue, assistant left/gray); mobile-friendly (max-w 85%, 375px)
+- **package.json:** added `@rails/actioncable`; layout meta `action-cable-url` for /cable
+- **Unit tests:** ChatService#stream_chat (nil client yields error once; stub client yields content deltas)
 
 **Decisions:**
-- Streaming via Action Cable from server-side LLM service (no client-direct OpenAI for stream)
-- Messages persisted on `Message` model tied to session
-- Chat component mounts in `/onboarding` view created by P1-000
+- Streaming via Action Cable only; no client-direct OpenAI
+- Single source of truth: server persists user + assistant messages; client shows optimistic user message
+- Streaming omits tools (plain text stream); tool calling remains in non-streaming #chat for P1-002
+- Anonymous sessions keyed by session[:onboarding_session_id]; signed-in by user_id (one session per user for now)
 
 **Follow-ups / debt:**
-- Run P0-002 (frontend), P0-003 (LLM), then P1-000, before first commit on P1-001
+- P1-002: orchestration will use same channel; add tool-call handling in stream or separate non-stream path
+- Optional: system prompt from PromptLoader (P0-004) when wired
 
 ---
 
@@ -132,19 +137,20 @@ Single place to record what landed per ticket, decisions, and follow-ups.
 **Branch:** feature/P0-005-observability-tracing
 
 **What shipped:**
-- **Langfuse** integrated: `langfuse` gem, `config/initializers/langfuse.rb` (configures only when `LANGFUSE_SECRET_KEY` set)
-- `Observability::Tracer` — `trace_llm_call(session_id:, user_id:, model:, messages:) { block }`; no-op when env key blank; creates trace + generation, records usage (prompt/completion/total tokens), latency, tool_calls, model
-- `LLM::ChatService#chat` — new optional kwargs `session_id: nil`, `user_id: nil`; wraps OpenAI call in `Tracer.trace_llm_call` so every LLM call is traced when Langfuse is configured
-- `.env.example`: `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, optional `LANGFUSE_HOST`
+- **LangSmith** integrated via REST API (no gem dependency); `Observability::Tracer` posts runs to `https://api.smith.langchain.com/runs`
+- `Observability::Tracer` — `trace_llm_call(session_id:, user_id:, model:, messages:) { block }`; no-op when env key blank; creates run with usage (prompt/completion/total tokens), latency, tool_calls, model
+- `LLM::ChatService#chat` — wraps OpenAI call in `Tracer.trace_llm_call` so every LLM call is traced when LangSmith is configured
+- `.env.example`: `LANGSMITH_API_KEY`, optional `LANGSMITH_PROJECT`, `LANGSMITH_ENDPOINT`
 - Unit tests: `Observability::Tracer` (enabled? when key set/unset, trace_llm_call yields and returns block result when disabled, accepts session_id/user_id)
 
 **Decisions:**
-- Langfuse chosen over LangSmith (Ruby SDK available, open-source)
-- Tracing is no-op when `LANGFUSE_SECRET_KEY` is blank (tests and dev without keys pass)
-- Session ID and user ID passed from future callers (e.g. controller in P1-001); not required for trace to be created
+- LangSmith chosen for observability (better ecosystem integration, hosted dashboard)
+- REST API used directly (no Ruby SDK needed); runs posted in background thread to avoid blocking
+- Tracing is no-op when `LANGSMITH_API_KEY` is blank (tests and dev without keys pass)
+- Session ID and user ID passed from future callers (e.g. controller in P1-001); not required for run to be created
 
 **Follow-ups / debt:**
-- With real API keys, trigger one chat and confirm trace appears in Langfuse dashboard with tokens, latency, session_id
+- With real API key, trigger one chat and confirm run appears in LangSmith dashboard with tokens, latency, session_id
 - P1-004 will log errors into tracing (error category)
 
 ---
