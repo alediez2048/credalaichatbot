@@ -1,36 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>Onboarding Assistant</title>
+    <title>Credal · Onboarding Assistant</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="action-cable-url" content="/cable">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
     <%= javascript_include_tag "application", "data-turbo-track": "reload", defer: true %>
   </head>
-  <body class="min-h-screen bg-gray-50 text-gray-900 antialiased">
+  <body class="min-h-screen bg-white font-sans text-credal-dark-gray antialiased font-light">
     <% if notice.present? %>
-      <p class="bg-green-100 text-green-800 px-4 py-2 text-sm"><%= notice %></p>
+      <p class="bg-green-50 text-credal-green px-4 py-2 text-sm"><%= notice %></p>
     <% end %>
     <% if alert.present? %>
-      <p class="bg-red-100 text-red-800 px-4 py-2 text-sm"><%= alert %></p>
+      <p class="bg-red-50 text-credal-red px-4 py-2 text-sm"><%= alert %></p>
     <% end %>
-    <header class="border-b border-gray-200 bg-white">
-      <nav class="mx-auto flex max-w-4xl items-center justify-between px-4 py-3 sm:px-6">
-        <%= link_to "Onboarding Assistant", root_path, class: "text-lg font-semibold text-gray-900 hover:text-gray-700" %>
+    <header class="sticky top-0 z-50 bg-white">
+      <nav class="mx-auto flex max-w-5xl items-center justify-between px-4 py-4 sm:px-6">
+        <%= link_to root_path, class: "flex items-center gap-2" do %>
+          <%= image_tag "credal-logo.png", alt: "Credal", class: "h-8 w-auto" %>
+        <% end %>
         <div class="flex items-center gap-3">
           <% if user_signed_in? %>
-            <span class="text-sm text-gray-600"><%= current_user.email %></span>
-            <%= button_to "Sign out", destroy_user_session_path, method: :delete, class: "rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50" %>
+            <span class="text-sm text-credal-medium-gray font-light"><%= current_user.email %></span>
+            <%= button_to "Sign out", destroy_user_session_path, method: :delete, class: "rounded-pill bg-credal-black px-3 py-1.5 text-sm font-light text-white hover:opacity-90" %>
           <% else %>
-            <%= link_to "Sign in", new_user_session_path, class: "text-sm font-medium text-indigo-600 hover:text-indigo-500" %>
-            <span class="text-gray-400">|</span>
-            <%= link_to "Sign up", new_user_registration_path, class: "text-sm font-medium text-indigo-600 hover:text-indigo-500" %>
+            <%= link_to "Sign in", new_user_session_path, class: "text-sm font-light text-credal-medium-gray hover:text-credal-black" %>
+            <%= link_to "Get started", new_user_registration_path, class: "rounded-pill bg-credal-black px-3 py-1.5 text-sm font-light text-white hover:opacity-90" %>
           <% end %>
         </div>
       </nav>
     </header>
-    <main class="mx-auto max-w-4xl px-4 py-6 sm:px-6">
+    <main>
       <%= yield %>
     </main>
   </body>
