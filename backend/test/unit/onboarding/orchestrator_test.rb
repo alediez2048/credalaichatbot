@@ -36,14 +36,15 @@ module Onboarding
 
     # --- Initialization ---
 
-    test "sets current_step to welcome when nil then advances to personal_info" do
+    test "sets current_step to welcome when nil" do
       mock = MockChatService.new(text_response("Hello! Welcome to onboarding."))
       orchestrator = Onboarding::Orchestrator.new(@session, chat_service: mock)
 
-      # Welcome has no required fields, so it advances after first exchange
       orchestrator.process("Hi")
       @session.reload
-      assert_equal "personal_info", @session.current_step
+      # Welcome has no required fields — advancement is deferred to next turn
+      assert_equal "welcome", @session.current_step
+      assert_equal "personal_info", @session.metadata["_pending_advance"]
     end
 
     # --- Process returns content ---
@@ -59,14 +60,22 @@ module Onboarding
 
     # --- Step advancement ---
 
-    test "advances from welcome to personal_info after first exchange" do
+    test "deferred advancement: welcome advances to personal_info on next turn" do
       @session.update!(current_step: "welcome")
-      mock = MockChatService.new(text_response("Great! Let's get started."))
+      mock = MockChatService.new(text_response("Great!"), text_response("What's your name?"))
       orchestrator = Onboarding::Orchestrator.new(@session, chat_service: mock)
 
+      # First turn: welcome response, deferred advance
       orchestrator.process("Yes, I'm ready")
       @session.reload
+      assert_equal "welcome", @session.current_step
+      assert_equal "personal_info", @session.metadata["_pending_advance"]
+
+      # Second turn: advance happens, now on personal_info
+      orchestrator.process("Let's go")
+      @session.reload
       assert_equal "personal_info", @session.current_step
+      assert_nil @session.metadata["_pending_advance"]
     end
 
     test "does not advance personal_info until all fields collected" do
@@ -97,36 +106,50 @@ module Onboarding
       assert_equal "document_upload", @session.current_step
     end
 
-    test "advances through stub steps (document_upload, scheduling)" do
+    test "deferred advancement through stub steps (document_upload → scheduling)" do
       @session.update!(current_step: "document_upload")
-      mock = MockChatService.new(text_response("Document upload is coming soon!"))
+      mock = MockChatService.new(text_response("Document upload is coming soon!"), text_response("Scheduling is coming soon!"))
       orchestrator = Onboarding::Orchestrator.new(@session, chat_service: mock)
 
+      # First turn: deferred advance
+      orchestrator.process("ok")
+      @session.reload
+      assert_equal "document_upload", @session.current_step
+      assert_equal "scheduling", @session.metadata["_pending_advance"]
+
+      # Second turn: advances to scheduling
       orchestrator.process("ok")
       @session.reload
       assert_equal "scheduling", @session.current_step
     end
 
     test "does not advance past complete" do
-      @session.update!(current_step: "complete")
+      @session.update!(current_step: "complete", metadata: {})
       mock = MockChatService.new(text_response("You're all done!"))
       orchestrator = Onboarding::Orchestrator.new(@session, chat_service: mock)
 
       orchestrator.process("thanks")
       @session.reload
       assert_equal "complete", @session.current_step
+      assert_nil @session.metadata["_pending_advance"]
     end
 
     # --- Progress tracking ---
 
-    test "updates progress_percent on step advancement" do
-      @session.update!(current_step: "welcome", progress_percent: 0)
-      mock = MockChatService.new(text_response("Let's begin!"))
+    test "updates progress_percent correctly" do
+      # personal_info is index 1 out of 5 max = 20%
+      @session.update!(current_step: "personal_info", progress_percent: 0, metadata: {})
+      mock = MockChatService.new(text_response("What's your name?"))
       orchestrator = Onboarding::Orchestrator.new(@session, chat_service: mock)
 
-      orchestrator.process("ready")
+      orchestrator.process("hi")
       @session.reload
-      assert @session.progress_percent > 0
+      assert_equal 20, @session.progress_percent
+    end
+
+    test "progress is 0 at welcome and 100 at complete" do
+      assert_equal 0, calc_progress("welcome")
+      assert_equal 100, calc_progress("complete")
     end
 
     # --- Tool call handling ---
@@ -163,6 +186,13 @@ module Onboarding
     end
 
     private
+
+    def calc_progress(step_name)
+      steps = Onboarding::Orchestrator::STEP_NAMES
+      idx = steps.index(step_name) || 0
+      max = steps.size - 1
+      max > 0 ? (idx.to_f / max * 100).round : 0
+    end
 
     def text_response(content)
       {

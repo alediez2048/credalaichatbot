@@ -86,9 +86,8 @@ class LLMToolCallingIntegrationTest < ActiveSupport::TestCase
 
   test "full path: router executes getOnboardingState and returns result" do
     router = Tools::Router.new
-    result = router.call("getOnboardingState", { "userId" => "user-1" })
+    result = router.call("getOnboardingState", {})
     assert result[:success]
-    # Without session context, returns message instead of session data
     assert result[:data].present?
   end
 end

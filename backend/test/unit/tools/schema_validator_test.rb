@@ -8,8 +8,8 @@ module Tools
       @validator = SchemaValidator.new
     end
 
-    test "validates known tool with required params" do
-      result = @validator.validate("getOnboardingState", { "userId" => "user-1" })
+    test "validates known tool with no required params" do
+      result = @validator.validate("getOnboardingState", {})
       assert result[:valid], result[:errors].inspect
     end
 
@@ -19,18 +19,18 @@ module Tools
       assert_includes result[:errors].join, "Unknown tool"
     end
 
-    test "rejects getOnboardingState with missing required userId" do
-      result = @validator.validate("getOnboardingState", {})
+    test "rejects tool with missing required params" do
+      # extractDocumentData requires imageFile and documentType
+      result = @validator.validate("extractDocumentData", {})
       assert_not result[:valid]
       assert_includes result[:errors].join, "Missing required"
-      assert_includes result[:errors].join, "userId"
     end
 
     test "validate! raises ValidationError when invalid" do
       error = assert_raises(SchemaValidator::ValidationError) do
-        @validator.validate!("getOnboardingState", {})
+        @validator.validate!("extractDocumentData", {})
       end
-      assert_match /userId|required/i, error.errors.to_s
+      assert_match /imageFile|required/i, error.errors.to_s
     end
 
     test "tool_names returns all 9 tools" do
@@ -46,6 +46,17 @@ module Tools
       assert_equal "function", defs.first[:type]
       assert defs.first[:function][:name].present?
       assert defs.first[:function][:parameters].is_a?(Hash)
+    end
+
+    test "saveOnboardingProgress requires data" do
+      result = @validator.validate("saveOnboardingProgress", {})
+      assert_not result[:valid]
+      assert_includes result[:errors].join, "data"
+    end
+
+    test "saveOnboardingProgress valid with data" do
+      result = @validator.validate("saveOnboardingProgress", { "data" => { "name" => "Jane" } })
+      assert result[:valid], result[:errors].inspect
     end
   end
 end

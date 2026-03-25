@@ -102,9 +102,6 @@
   parameters:
     type: object
     properties:
-      userId:
-        type: string
-        description: User or session identifier.
       step:
         type: string
         description: Current onboarding step name.
@@ -112,17 +109,11 @@
         type: object
         description: Key-value map of collected field names and values.
     required:
-      - userId
-      - step
       - data
 
 - name: getOnboardingState
   description: Load saved onboarding progress for session resumption.
   parameters:
     type: object
-    properties:
-      userId:
-        type: string
-        description: User or session identifier.
-    required:
-      - userId
+    properties: {}
+    required: []

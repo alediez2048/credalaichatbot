@@ -17,6 +17,9 @@ module Onboarding
     # @param user_message [String]
     # @return [Hash] { content: String, step_changed: Boolean }
     def process(user_message)
+      # Advance pending step transitions from the previous turn before processing
+      maybe_advance_pending_step
+
       step_before = @session.current_step
       step_def = current_step_definition
 
@@ -37,7 +40,7 @@ module Onboarding
       content = extract_content(response)
       content = "I'm here to help with your onboarding. What can I assist you with?" if content.blank?
 
-      maybe_advance_step(step_def)
+      mark_step_ready_to_advance(step_def)
       update_progress
 
       { content: content, step_changed: @session.current_step != step_before }
@@ -129,13 +132,31 @@ module Onboarding
       response.dig("choices", 0, "message", "content").to_s.strip
     end
 
-    def maybe_advance_step(step_def)
+    # Check if a previous turn marked the step as ready to advance
+    def maybe_advance_pending_step
+      pending = @session.metadata&.dig("_pending_advance")
+      return unless pending.present?
+
+      meta = @session.metadata.except("_pending_advance")
+      @session.update!(current_step: pending, metadata: meta)
+    end
+
+    # Mark the step as ready to advance — actual advancement happens at the start of the next turn
+    # so the user sees the current step's response before moving on.
+    # Exception: steps with required fields advance immediately when fields are complete
+    # (the LLM has been collecting data and the user expects to move on).
+    def mark_step_ready_to_advance(step_def)
       return if step_def["next_step"].blank?
 
-      if step_def["required_fields"].nil? || step_def["required_fields"].empty?
+      has_required = step_def["required_fields"].present? && step_def["required_fields"].any?
+
+      if has_required && all_required_fields_collected?(step_def)
+        # Immediate advance — user has been actively providing data
         advance_to(step_def["next_step"])
-      elsif all_required_fields_collected?(step_def)
-        advance_to(step_def["next_step"])
+      elsif !has_required
+        # Deferred advance — user should see this step's message first
+        meta = (@session.metadata || {}).merge("_pending_advance" => step_def["next_step"])
+        @session.update!(metadata: meta)
       end
     end
 
@@ -151,7 +172,8 @@ module Onboarding
 
     def update_progress
       idx = STEP_NAMES.index(@session.current_step) || 0
-      progress = ((idx + 1).to_f / STEP_NAMES.size * 100).round
+      max_idx = STEP_NAMES.size - 1
+      progress = max_idx > 0 ? (idx.to_f / max_idx * 100).round : 0
       @session.update!(progress_percent: progress)
     end
   end

@@ -9,7 +9,7 @@ module Tools
     end
 
     test "call delegates to real handler for getOnboardingState" do
-      result = @router.call("getOnboardingState", { "userId" => "user-1" })
+      result = @router.call("getOnboardingState", {})
       assert result[:success]
       # Without session context, returns "Session not available."
       assert_equal "Session not available.", result.dig(:data, :message)
@@ -17,17 +17,17 @@ module Tools
 
     test "call with session context returns session data" do
       session = OnboardingSession.create!(status: "active", current_step: "welcome", metadata: { "name" => "Jane" })
-      result = @router.call("getOnboardingState", { "userId" => session.id.to_s }, context: { session: session })
+      result = @router.call("getOnboardingState", {}, context: { session: session })
       assert result[:success]
       assert_equal "welcome", result.dig(:data, :current_step)
       assert_equal({ "name" => "Jane" }, result.dig(:data, :collected_data))
     end
 
     test "call with invalid params returns error" do
-      result = @router.call("getOnboardingState", {})
+      # extractDocumentData requires imageFile and documentType
+      result = @router.call("extractDocumentData", {})
       assert_not result[:success]
       assert result[:error].present?
-      assert_match /Missing required|userId/i, result[:error]
     end
 
     test "call with unknown tool returns error" do
@@ -50,8 +50,6 @@ module Tools
     test "saveOnboardingProgress persists data to session" do
       session = OnboardingSession.create!(status: "active", current_step: "personal_info", metadata: {})
       result = @router.call("saveOnboardingProgress", {
-        "userId" => session.id.to_s,
-        "step" => "personal_info",
         "data" => { "full_name" => "Test User" }
       }, context: { session: session })
       assert result[:success]
