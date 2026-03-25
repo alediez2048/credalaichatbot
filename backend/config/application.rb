@@ -25,5 +25,6 @@ module OnboardingAssistant
     config.api_only = false
     config.time_zone = "UTC"
     config.generators.system_tests = nil
+    config.filter_parameters += [:ssn, :ssn_last4, :date_of_birth, :social_security, :password, :secret]
   end
 end
