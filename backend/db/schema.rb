@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_03_25_035647) do
+ActiveRecord::Schema[7.2].define(version: 2026_03_25_042501) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -42,6 +42,23 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_25_035647) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
+  create_table "appointment_slots", force: :cascade do |t|
+    t.date "date", null: false
+    t.time "start_time", null: false
+    t.time "end_time", null: false
+    t.integer "duration_minutes", default: 30
+    t.string "service_type", null: false
+    t.integer "capacity", default: 1, null: false
+    t.integer "booked_count", default: 0, null: false
+    t.string "status", default: "available", null: false
+    t.bigint "created_by"
+    t.jsonb "metadata", default: {}
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["date", "service_type"], name: "index_appointment_slots_on_date_and_service_type"
+    t.index ["status"], name: "index_appointment_slots_on_status"
+  end
+
   create_table "audit_logs", force: :cascade do |t|
     t.bigint "user_id"
     t.bigint "onboarding_session_id"
@@ -66,6 +83,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_25_035647) do
     t.string "status", default: "confirmed"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "appointment_slot_id"
+    t.index ["appointment_slot_id"], name: "index_bookings_on_appointment_slot_id"
     t.index ["onboarding_session_id"], name: "index_bookings_on_onboarding_session_id"
   end
 
@@ -133,6 +152,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_25_035647) do
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "audit_logs", "onboarding_sessions"
   add_foreign_key "audit_logs", "users"
+  add_foreign_key "bookings", "appointment_slots"
   add_foreign_key "bookings", "onboarding_sessions"
   add_foreign_key "documents", "onboarding_sessions"
   add_foreign_key "extracted_fields", "documents"
