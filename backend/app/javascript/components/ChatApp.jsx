@@ -2,12 +2,12 @@ import React, { useState, useEffect, useRef } from "react"
 import { createRoot } from "react-dom/client"
 import { createConsumer } from "@rails/actioncable"
 
-const DEFAULT_SYSTEM_PROMPT = "You are a helpful onboarding assistant."
-
 function ChatApp() {
   const rootEl = document.getElementById("chat-root")
   const sessionId = rootEl?.getAttribute("data-session-id")
   const initialMessagesJson = rootEl?.getAttribute("data-initial-messages") || "[]"
+  const isCompleted = rootEl?.getAttribute("data-completed") === "true"
+  const isResuming = rootEl?.getAttribute("data-resuming") === "true"
 
   const [messages, setMessages] = useState(() => {
     try {
@@ -19,8 +19,8 @@ function ChatApp() {
   const [streamingContent, setStreamingContent] = useState("")
   const [inputValue, setInputValue] = useState("")
   const [isStreaming, setIsStreaming] = useState(false)
-  const [cable, setCable] = useState(null)
-  const [sub, setSub] = useState(null)
+  const [currentStep, setCurrentStep] = useState(rootEl?.getAttribute("data-current-step") || "")
+  const [progress, setProgress] = useState(parseInt(rootEl?.getAttribute("data-progress") || "0", 10))
   const messagesEndRef = useRef(null)
   const subscriptionRef = useRef(null)
 
@@ -28,7 +28,6 @@ function ChatApp() {
     if (!sessionId) return
     const url = document.querySelector('meta[name="action-cable-url"]')?.content || "/cable"
     const consumer = createConsumer(url)
-    setCable(consumer)
     const sub = consumer.subscriptions.create(
       { channel: "OnboardingChatChannel", session_id: sessionId },
       {
@@ -42,6 +41,18 @@ function ChatApp() {
             setMessages((prev) => [...prev, { id: data.id, role: "assistant", content: data.content || "" }])
             setStreamingContent("")
             setIsStreaming(false)
+            // Update progress from server
+            if (data.current_step) setCurrentStep(data.current_step)
+            if (data.progress_percent != null) {
+              setProgress(data.progress_percent)
+              // Update the progress bar in the ERB-rendered header
+              const bar = document.querySelector("[data-progress-bar]")
+              if (bar) bar.style.width = `${data.progress_percent}%`
+              const label = document.querySelector("[data-progress-label]")
+              if (label) label.textContent = `${data.progress_percent}%`
+              const stepLabel = document.querySelector("[data-step-label]")
+              if (stepLabel) stepLabel.textContent = `Step: ${(data.current_step || "").replace(/_/g, " ")}`
+            }
           } else if (data.type === "error") {
             setMessages((prev) => [...prev, { id: null, role: "assistant", content: data.message || "Something went wrong." }])
             setStreamingContent("")
@@ -51,7 +62,6 @@ function ChatApp() {
       }
     )
     subscriptionRef.current = sub
-    setSub(sub)
     return () => {
       sub.unsubscribe()
       consumer.disconnect()
@@ -65,7 +75,7 @@ function ChatApp() {
   const handleSubmit = (e) => {
     e.preventDefault()
     const body = inputValue.trim()
-    if (!body || !subscriptionRef.current || isStreaming) return
+    if (!body || !subscriptionRef.current || isStreaming || isCompleted) return
     setInputValue("")
     setMessages((prev) => [...prev, { id: null, role: "user", content: body }])
     subscriptionRef.current.perform("send_message", { body })
@@ -79,13 +89,28 @@ function ChatApp() {
     )
   }
 
+  const emptyState = messages.length === 0 && !streamingContent
+
   return (
-    <div className="flex h-full min-h-0 min-w-0 flex-col bg-white sm:min-h-[400px]">
+    <div className="flex h-full min-h-0 min-w-0 flex-col bg-white">
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.length === 0 && !streamingContent && (
+        {emptyState && !isResuming && (
           <p className="text-center text-[#777777] text-sm font-light pt-8">
             Send a message to start your onboarding.
           </p>
+        )}
+        {emptyState && isResuming && (
+          <p className="text-center text-[#777777] text-sm font-light pt-8">
+            Welcome back! Send a message to continue.
+          </p>
+        )}
+        {isCompleted && emptyState && (
+          <div className="text-center pt-8">
+            <p className="text-[#00C14E] text-lg font-medium">Onboarding Complete</p>
+            <p className="text-[#777777] text-sm font-light mt-2">
+              You've finished all onboarding steps. Contact HR if you need to update anything.
+            </p>
+          </div>
         )}
         {messages.map((m) => (
           <div
@@ -119,26 +144,28 @@ function ChatApp() {
         )}
         <div ref={messagesEndRef} />
       </div>
-      <form onSubmit={handleSubmit} className="border-t border-[#E0E0E0] p-3">
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            placeholder="Type a message..."
-            className="flex-1 rounded-pill border border-[#E0E0E0] px-4 py-2 text-sm font-light focus:border-[#6D46DE] focus:outline-none focus:ring-1 focus:ring-[#6D46DE]"
-            disabled={isStreaming}
-            autoComplete="off"
-          />
-          <button
-            type="submit"
-            disabled={isStreaming || !inputValue.trim()}
-            className="rounded-pill bg-[#6D46DE] px-5 py-2 text-sm font-light text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Send
-          </button>
-        </div>
-      </form>
+      {!isCompleted && (
+        <form onSubmit={handleSubmit} className="border-t border-[#E0E0E0] p-3">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              placeholder="Type a message..."
+              className="flex-1 rounded-pill border border-[#E0E0E0] px-4 py-2 text-sm font-light focus:border-[#6D46DE] focus:outline-none focus:ring-1 focus:ring-[#6D46DE]"
+              disabled={isStreaming}
+              autoComplete="off"
+            />
+            <button
+              type="submit"
+              disabled={isStreaming || !inputValue.trim()}
+              className="rounded-pill bg-[#6D46DE] px-5 py-2 text-sm font-light text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Send
+            </button>
+          </div>
+        </form>
+      )}
     </div>
   )
 }

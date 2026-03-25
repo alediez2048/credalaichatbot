@@ -59,7 +59,7 @@ module Onboarding
 
     def build_messages(step_def, user_message)
       system_prompt = build_system_prompt(step_def)
-      history = @session.messages.order(:created_at).map { |m| { role: m.role, content: m.content.to_s } }
+      history = Onboarding::Resumption.build_history(@session)
       LLM::ContextBuilder.build(system_prompt: system_prompt, history: history, current_message: user_message)
     end
 
