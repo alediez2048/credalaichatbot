@@ -8,6 +8,11 @@ Rails.application.routes.draw do
   namespace :api do
     resources :documents, only: [:create]
     resources :extracted_fields, only: [:update]
+    resources :bookings, only: [] do
+      member do
+        get "calendar", to: "bookings#calendar"
+      end
+    end
   end
   get "up" => "rails/health#show", as: :rails_health_check
 end
