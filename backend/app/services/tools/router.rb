@@ -49,7 +49,8 @@ module Tools
         "getAvailableSlots" => method(:handle_get_slots),
         "bookAppointment" => method(:handle_book_appointment),
         "cancelAppointment" => method(:handle_cancel_appointment),
-        "getMyBookings" => method(:handle_get_bookings)
+        "getMyBookings" => method(:handle_get_bookings),
+        "detectUserSentiment" => method(:handle_detect_sentiment)
       )
     end
 
@@ -151,6 +152,17 @@ module Tools
         { success: true, data: { bookings: formatted, count: formatted.size } }
       else
         { success: true, data: { bookings: [], count: 0 } }
+      end
+    end
+
+    def handle_detect_sentiment(args, session: nil, **_)
+      if session
+        result = Sentiment::Analyzer.analyze(session)
+        Sentiment::Tracker.record(session, **result)
+        escalating = Sentiment::Tracker.escalating?(session)
+        { success: true, data: result.merge(escalating: escalating) }
+      else
+        { success: true, data: Sentiment::Analyzer.default_result }
       end
     end
 
