@@ -34,9 +34,11 @@ steps:
     description: Schedule an orientation appointment
     required_fields: []
     prompt_instructions: |
-      Explain that appointment scheduling will be available soon.
-      For now, acknowledge this step warmly and move to the review step.
-    tools: []
+      Help the user schedule an orientation appointment. First use getAvailableSlots
+      to show available times. Present the top 3-5 options clearly. When the user
+      picks a time, use bookAppointment with the slot_id to confirm the booking.
+      If booking fails (slot full), offer alternatives.
+    tools: [getAvailableSlots, bookAppointment]
     next_step: review
 
   - name: review

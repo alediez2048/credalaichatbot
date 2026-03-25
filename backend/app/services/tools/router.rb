@@ -45,7 +45,9 @@ module Tools
         "saveOnboardingProgress" => method(:handle_save_progress),
         "getOnboardingState" => method(:handle_get_state),
         "extractDocumentData" => method(:handle_extract_document),
-        "validateExtractedData" => method(:handle_validate_fields)
+        "validateExtractedData" => method(:handle_validate_fields),
+        "getAvailableSlots" => method(:handle_get_slots),
+        "bookAppointment" => method(:handle_book_appointment)
       )
     end
 
@@ -96,6 +98,32 @@ module Tools
         }}
       else
         { success: false, error: "Document not found." }
+      end
+    end
+
+    def handle_get_slots(args, session: nil, **_)
+      service_type = args["serviceType"]
+      slots = Scheduling::SlotRecommender.recommend(service_type: service_type, limit: 5)
+      formatted = Scheduling::SlotRecommender.format_for_llm(slots)
+      { success: true, data: { slots: formatted, count: formatted.size } }
+    end
+
+    def handle_book_appointment(args, session: nil, **_)
+      slot_id = args["slotId"]
+      session_id = session&.id || args["userId"]
+
+      begin
+        booking = Scheduling::SlotManager.book!(slot_id, session_id)
+        { success: true, data: {
+          booking_id: booking.id,
+          starts_at: booking.starts_at.to_s,
+          service_type: booking.service_type,
+          status: booking.status
+        }}
+      rescue Scheduling::SlotManager::SlotFullError => e
+        { success: false, error: e.message }
+      rescue Scheduling::SlotManager::SlotNotFoundError => e
+        { success: false, error: e.message }
       end
     end
 
