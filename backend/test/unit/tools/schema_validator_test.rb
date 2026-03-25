@@ -33,16 +33,16 @@ module Tools
       assert_match /imageFile|required/i, error.errors.to_s
     end
 
-    test "tool_names returns all 9 tools" do
+    test "tool_names returns all 11 tools" do
       names = @validator.tool_names
-      assert_equal 9, names.size
+      assert_equal 11, names.size
       assert_includes names, "getOnboardingState"
       assert_includes names, "saveOnboardingProgress"
     end
 
     test "definitions_for_openai returns array of function tools" do
       defs = @validator.definitions_for_openai
-      assert_equal 9, defs.size
+      assert_equal 11, defs.size
       assert_equal "function", defs.first[:type]
       assert defs.first[:function][:name].present?
       assert defs.first[:function][:parameters].is_a?(Hash)

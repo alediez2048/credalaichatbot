@@ -65,8 +65,8 @@ module Tools
       assert_equal "welcome", session.current_step
     end
 
-    test "tool_names returns 9 tools" do
-      assert_equal 9, @router.tool_names.size
+    test "tool_names returns 11 tools" do
+      assert_equal 11, @router.tool_names.size
     end
   end
 end
