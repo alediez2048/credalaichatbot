@@ -42,7 +42,7 @@ class OnboardingController < ApplicationController
   end
 
   def create_anonymous_session
-    s = OnboardingSession.create!(user_id: nil, status: "active")
+    s = OnboardingSession.create!(user_id: nil, anonymous_token: SecureRandom.uuid, status: "active")
     session[:onboarding_session_id] = s.id
     s
   end

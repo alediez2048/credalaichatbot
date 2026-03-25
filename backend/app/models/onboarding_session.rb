@@ -6,4 +6,11 @@ class OnboardingSession < ApplicationRecord
   has_many :documents, dependent: :destroy
   has_many :bookings, dependent: :destroy
   has_many :audit_logs, dependent: :destroy
+
+  scope :anonymous, -> { where(user_id: nil) }
+  scope :for_user, ->(user) { where(user: user) }
+
+  def merged?
+    status == "merged"
+  end
 end
