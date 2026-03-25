@@ -1,0 +1,59 @@
+steps:
+  - name: welcome
+    description: Greet the user and explain the onboarding process
+    required_fields: []
+    prompt_instructions: |
+      Welcome the user warmly. Explain that you'll guide them through onboarding:
+      collecting some personal information, uploading documents, and scheduling
+      an orientation appointment. Ask if they're ready to begin.
+    tools: [startOnboarding]
+    next_step: personal_info
+
+  - name: personal_info
+    description: Collect the user's personal information
+    required_fields: [full_name, email, phone, date_of_birth]
+    prompt_instructions: |
+      Collect the user's personal information one field at a time. Be conversational.
+      Required: full name, email address, phone number, and date of birth.
+      When you have a piece of information, call saveOnboardingProgress to store it.
+      When all required fields are collected, confirm with the user and move on.
+    tools: [saveOnboardingProgress, getOnboardingState]
+    next_step: document_upload
+
+  - name: document_upload
+    description: Request identity documents
+    required_fields: []
+    prompt_instructions: |
+      Explain that document upload (driver's license, W-4, etc.) will be available soon.
+      For now, acknowledge this step warmly and let the user know you'll move to scheduling.
+      Do not ask them to upload anything.
+    tools: []
+    next_step: scheduling
+
+  - name: scheduling
+    description: Schedule an orientation appointment
+    required_fields: []
+    prompt_instructions: |
+      Explain that appointment scheduling will be available soon.
+      For now, acknowledge this step warmly and move to the review step.
+    tools: []
+    next_step: review
+
+  - name: review
+    description: Review all collected information
+    required_fields: []
+    prompt_instructions: |
+      Summarize all the information collected so far. Present it clearly and ask
+      the user to confirm everything looks correct. Use getOnboardingState to
+      retrieve the data if needed.
+    tools: [getOnboardingState]
+    next_step: complete
+
+  - name: complete
+    description: Onboarding complete
+    required_fields: []
+    prompt_instructions: |
+      Congratulate the user on completing onboarding. Let them know what happens
+      next (HR will review, they'll receive a welcome email, etc.). Be warm and encouraging.
+    tools: [saveOnboardingProgress]
+    next_step:
