@@ -26,6 +26,9 @@ module Api
       )
       document.file.attach(file)
 
+      # Enqueue extraction job
+      Documents::ExtractionJob.perform_later(document.id)
+
       render json: {
         id: document.id,
         document_type: document.document_type,

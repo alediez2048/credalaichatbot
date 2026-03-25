@@ -43,7 +43,8 @@ module Tools
       stubs.merge(
         "startOnboarding" => method(:handle_start_onboarding),
         "saveOnboardingProgress" => method(:handle_save_progress),
-        "getOnboardingState" => method(:handle_get_state)
+        "getOnboardingState" => method(:handle_get_state),
+        "extractDocumentData" => method(:handle_extract_document)
       )
     end
 
@@ -76,6 +77,18 @@ module Tools
         { success: true, data: { current_step: session.current_step, progress_percent: session.progress_percent, collected_data: session.metadata } }
       else
         { success: true, data: { message: "Session not available." } }
+      end
+    end
+
+    def handle_extract_document(args, session: nil, **_)
+      document_id = args["document_id"] || args["imageFile"]
+      document = Document.find_by(id: document_id)
+
+      if document
+        Documents::ExtractionJob.perform_later(document.id)
+        { success: true, data: { status: "processing", document_id: document.id, message: "Document is being processed. You'll be notified when extraction is complete." } }
+      else
+        { success: false, error: "Document not found." }
       end
     end
   end
