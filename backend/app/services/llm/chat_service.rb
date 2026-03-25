@@ -79,6 +79,10 @@ module LLM
 
     def to_response_hash(response)
       return response if response.is_a?(Hash) && response.key?("choices")
+      # Deep conversion via JSON round-trip to handle nested OpenAI model objects
+      json = response.respond_to?(:to_json) ? response.to_json : JSON.generate(response)
+      JSON.parse(json)
+    rescue JSON::GeneratorError, JSON::ParserError
       h = response.respond_to?(:to_h) ? response.to_h : response
       h.deep_transform_keys(&:to_s)
     end
