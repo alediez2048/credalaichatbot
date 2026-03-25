@@ -1,0 +1,80 @@
+drivers_license:
+  display_name: "Driver's License"
+  fields:
+    - name: full_name
+      type: string
+      required: true
+    - name: date_of_birth
+      type: date
+      required: true
+      format: '\d{4}-\d{2}-\d{2}'
+    - name: address
+      type: string
+      required: true
+    - name: license_number
+      type: string
+      required: true
+      format: '[A-Za-z0-9\-]{4,}'
+    - name: state
+      type: string
+      required: false
+  extraction_hints: "This is a US driver's license. Look for the name, date of birth, address, and license number."
+
+w4:
+  display_name: "W-4 Tax Form"
+  fields:
+    - name: full_name
+      type: string
+      required: true
+    - name: ssn_last4
+      type: string
+      required: true
+      format: '\d{4}'
+    - name: filing_status
+      type: string
+      required: true
+    - name: address
+      type: string
+      required: false
+  extraction_hints: "This is an IRS W-4 form. Extract the employee's name, last 4 of SSN, filing status, and address."
+
+passport:
+  display_name: "Passport"
+  fields:
+    - name: full_name
+      type: string
+      required: true
+    - name: date_of_birth
+      type: date
+      required: true
+      format: '\d{4}-\d{2}-\d{2}'
+    - name: nationality
+      type: string
+      required: true
+    - name: passport_number
+      type: string
+      required: true
+      format: '[A-Za-z0-9]{6,}'
+    - name: expiry_date
+      type: date
+      required: false
+      format: '\d{4}-\d{2}-\d{2}'
+  extraction_hints: "This is a passport. Extract full name, date of birth, nationality, passport number, and expiry date."
+
+i9:
+  display_name: "I-9 Employment Eligibility"
+  fields:
+    - name: full_name
+      type: string
+      required: true
+    - name: date_of_birth
+      type: date
+      required: true
+      format: '\d{4}-\d{2}-\d{2}'
+    - name: citizenship_status
+      type: string
+      required: true
+    - name: work_authorization
+      type: string
+      required: false
+  extraction_hints: "This is an I-9 employment eligibility verification form. Extract name, DOB, citizenship status, and work authorization."

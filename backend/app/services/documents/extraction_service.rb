@@ -2,13 +2,6 @@
 
 module Documents
   class ExtractionService
-    FIELD_MAPS = {
-      "drivers_license" => %w[full_name date_of_birth address license_number state],
-      "w4" => %w[full_name ssn_last4 filing_status address],
-      "passport" => %w[full_name date_of_birth nationality passport_number expiry_date],
-      "i9" => %w[full_name date_of_birth citizenship_status work_authorization]
-    }.freeze
-
     DEFAULT_FIELDS = %w[full_name date_of_birth address].freeze
 
     def initialize(document, chat_service: nil)
@@ -34,10 +27,21 @@ module Documents
     end
 
     def build_extraction_prompt
-      expected_fields = FIELD_MAPS[@document.document_type] || DEFAULT_FIELDS
+      expected_fields = begin
+        Documents::TypeRegistry.fields_for(@document.document_type)
+      rescue Documents::TypeRegistry::UnknownTypeError
+        DEFAULT_FIELDS
+      end
+
+      hints = begin
+        Documents::TypeRegistry.extraction_hints_for(@document.document_type)
+      rescue Documents::TypeRegistry::UnknownTypeError
+        ""
+      end
 
       <<~PROMPT
         You are a document data extraction system. Analyze the provided #{@document.document_type} document image and extract structured data.
+        #{"Context: #{hints}" if hints.present?}
 
         Extract the following fields: #{expected_fields.join(', ')}
 

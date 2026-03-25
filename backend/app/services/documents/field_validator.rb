@@ -5,7 +5,8 @@ module Documents
     HIGH_THRESHOLD = 0.90
     MEDIUM_THRESHOLD = 0.70
 
-    FORMAT_RULES = {
+    # Fallback format rules for fields not defined in TypeRegistry
+    FALLBACK_FORMAT_RULES = {
       "date_of_birth" => /\A\d{4}-\d{2}-\d{2}\z/,
       "expiry_date" => /\A\d{4}-\d{2}-\d{2}\z/,
       "ssn_last4" => /\A\d{4}\z/,
@@ -46,8 +47,8 @@ module Documents
 
       # Validate format of a specific field
       # @return [Hash] { valid: Boolean, error: String|nil }
-      def validate_format(field_name, value)
-        pattern = FORMAT_RULES[field_name]
+      def validate_format(field_name, value, document_type: nil)
+        pattern = resolve_format_pattern(field_name, document_type)
         return { valid: true, error: nil } unless pattern
 
         if value.to_s.match?(pattern)
@@ -73,6 +74,21 @@ module Documents
         end
 
         summary.join("\n")
+      end
+
+      private
+
+      def resolve_format_pattern(field_name, document_type)
+        # Try TypeRegistry first, fall back to hardcoded rules
+        if document_type
+          begin
+            rules = Documents::TypeRegistry.validation_rules_for(document_type)
+            return Regexp.new("\\A#{rules[field_name]}\\z") if rules[field_name]
+          rescue Documents::TypeRegistry::UnknownTypeError
+            # Fall through to fallback
+          end
+        end
+        FALLBACK_FORMAT_RULES[field_name]
       end
     end
   end
