@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
 set -e
 cd "$(dirname "$0")/.."
-exec foreman start -f Procfile.dev "$@"
+
+if redis-cli ping >/dev/null 2>&1; then
+  echo "Redis already running; starting app processes without Procfile redis entry."
+  exec bundle exec foreman start -f Procfile.dev -m redis=0 "$@"
+else
+  exec bundle exec foreman start -f Procfile.dev "$@"
+fi

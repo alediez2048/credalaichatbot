@@ -1,3 +1,5 @@
-<div class="h-screen min-h-[400px] rounded-lg border border-gray-200 bg-white shadow-sm">
-  <div id="chat-root" class="h-full"></div>
+<div class="mx-auto max-w-3xl px-4 py-6 sm:px-6" style="height: calc(100vh - 72px);">
+  <div class="h-full rounded-2xl border border-[#E0E0E0] bg-white shadow-credal">
+    <div id="chat-root" class="h-full" data-session-id="<%= @onboarding_session.id %>" data-initial-messages="<%= j @onboarding_session.messages.order(:created_at).map { |m| { id: m.id, role: m.role, content: m.content.to_s } }.to_json %>"></div>
+  </div>
 </div>

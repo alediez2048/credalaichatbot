@@ -40,7 +40,31 @@ module LLM
       @tool_definitions
     end
 
+    # Stream chat completion token-by-token. Yields each content delta; no tool_calls (streaming only).
+    # @param messages [Array<Hash>] OpenAI format
+    # @param session_id [String, Integer, nil] for tracing
+    # @param user_id [String, Integer, nil] for tracing
+    # @yield [String] content delta (token or chunk)
+    def stream_chat(messages:, session_id: nil, user_id: nil, &block)
+      return block.call("OPENAI_API_KEY not set. I can't respond right now.") if @client.nil?
+
+      model = ENV.fetch("OPENAI_MODEL", "gpt-4o")
+      params = { model: model, messages: messages }
+      # Omit tools for streaming to get plain text stream; tool calling would need separate handling.
+      stream = @client.chat.completions.stream_raw(params)
+
+      stream.each do |chunk|
+        content = extract_stream_content(chunk)
+        block.call(content) if content.present?
+      end
+    end
+
     private
+
+    def extract_stream_content(chunk)
+      h = chunk.respond_to?(:to_h) ? chunk.to_h.deep_stringify_keys : (chunk.is_a?(Hash) ? chunk.deep_stringify_keys : {})
+      h.dig("choices", 0, "delta", "content")
+    end
 
     def build_client
       api_key = ENV["OPENAI_API_KEY"].presence

@@ -18,7 +18,7 @@ gem "jbuilder"
 gem "bootsnap", require: false
 gem "dotenv-rails", groups: [:development, :test]
 gem "openai"
-gem "langfuse"  # P0-005: observability & tracing for LLM calls
+# P0-005: LangSmith observability via REST API (no gem needed)
 
 group :development, :test do
   gem "debug", platforms: :mri
