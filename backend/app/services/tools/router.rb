@@ -4,13 +4,14 @@ module Tools
   class Router
     def initialize(validator: nil)
       @validator = validator || SchemaValidator.new
-      @handlers = build_stub_handlers
+      @handlers = build_handlers
     end
 
     # @param tool_name [String]
     # @param arguments [Hash] tool call arguments (string keys from OpenAI)
+    # @param context [Hash] optional context (e.g. { session: OnboardingSession })
     # @return [Hash] result to send back to the LLM (e.g. { success: true, data: ... })
-    def call(tool_name, arguments)
+    def call(tool_name, arguments, context: {})
       args = arguments.is_a?(String) ? parse_arguments(arguments) : (arguments || {}).stringify_keys
       result = @validator.validate(tool_name, args)
       unless result[:valid]
@@ -22,7 +23,7 @@ module Tools
         return { success: false, error: "No handler for tool: #{tool_name}" }
       end
 
-      handler.call(args)
+      handler.call(args, **context)
     end
 
     def tool_names
@@ -37,14 +38,45 @@ module Tools
       {}
     end
 
-    def build_stub_handlers
-      @validator.tool_names.to_h do |name|
-        [name, stub_handler(name)]
-      end
+    def build_handlers
+      stubs = @validator.tool_names.to_h { |name| [name, stub_handler(name)] }
+      stubs.merge(
+        "startOnboarding" => method(:handle_start_onboarding),
+        "saveOnboardingProgress" => method(:handle_save_progress),
+        "getOnboardingState" => method(:handle_get_state)
+      )
     end
 
     def stub_handler(name)
-      ->(_args) { { success: true, data: { tool: name, message: "Stub implementation (P0-003)" } } }
+      ->(_args, **_ctx) { { success: true, data: { tool: name, message: "This feature is coming soon." } } }
+    end
+
+    def handle_start_onboarding(args, session: nil, **_)
+      if session
+        session.update!(current_step: "welcome") if session.current_step.blank?
+        { success: true, data: { session_id: session.id, current_step: session.current_step } }
+      else
+        { success: true, data: { message: "Session not available." } }
+      end
+    end
+
+    def handle_save_progress(args, session: nil, **_)
+      if session
+        data = args["data"] || {}
+        merged = (session.metadata || {}).merge(data)
+        session.update!(metadata: merged)
+        { success: true, data: { step: args["step"] || session.current_step, saved_fields: data.keys } }
+      else
+        { success: true, data: { message: "Session not available." } }
+      end
+    end
+
+    def handle_get_state(args, session: nil, **_)
+      if session
+        { success: true, data: { current_step: session.current_step, progress_percent: session.progress_percent, collected_data: session.metadata } }
+      else
+        { success: true, data: { message: "Session not available." } }
+      end
     end
   end
 end

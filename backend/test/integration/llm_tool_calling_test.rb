@@ -84,10 +84,11 @@ class LLMToolCallingIntegrationTest < ActiveSupport::TestCase
     assert result[:data].present?
   end
 
-  test "full path: router executes getOnboardingState and returns stub result" do
+  test "full path: router executes getOnboardingState and returns result" do
     router = Tools::Router.new
     result = router.call("getOnboardingState", { "userId" => "user-1" })
     assert result[:success]
-    assert_equal "getOnboardingState", result.dig(:data, :tool)
+    # Without session context, returns message instead of session data
+    assert result[:data].present?
   end
 end
