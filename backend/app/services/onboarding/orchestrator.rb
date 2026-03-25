@@ -87,6 +87,8 @@ module Onboarding
         - When you have the information needed, use the appropriate tool to save it.
         - If a feature is coming soon, acknowledge it gracefully and move forward.
         - Keep responses concise — 2-3 sentences unless more detail is needed.
+
+        #{Sentiment::PromptAdapter.adapt_prompt(@session)}
       PROMPT
     end
 

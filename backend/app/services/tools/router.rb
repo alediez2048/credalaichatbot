@@ -50,7 +50,8 @@ module Tools
         "bookAppointment" => method(:handle_book_appointment),
         "cancelAppointment" => method(:handle_cancel_appointment),
         "getMyBookings" => method(:handle_get_bookings),
-        "detectUserSentiment" => method(:handle_detect_sentiment)
+        "detectUserSentiment" => method(:handle_detect_sentiment),
+        "getSupportContent" => method(:handle_get_support_content)
       )
     end
 
@@ -153,6 +154,13 @@ module Tools
       else
         { success: true, data: { bookings: [], count: 0 } }
       end
+    end
+
+    def handle_get_support_content(args, session: nil, **_)
+      context = args["context"] || session&.current_step || "general"
+      sentiment_level = args["sentimentLevel"] || "neutral"
+      instructions = Sentiment::PromptAdapter.instructions_for(sentiment_level)
+      { success: true, data: { context: context, sentiment_level: sentiment_level, support_instructions: instructions } }
     end
 
     def handle_detect_sentiment(args, session: nil, **_)
