@@ -74,6 +74,24 @@
       - userId
       - slotId
 
+- name: cancelAppointment
+  description: Cancel an existing booking. Must be at least 2 hours before the appointment.
+  parameters:
+    type: object
+    properties:
+      bookingId:
+        type: string
+        description: The booking ID to cancel.
+    required:
+      - bookingId
+
+- name: getMyBookings
+  description: List the user's active bookings for the current onboarding session.
+  parameters:
+    type: object
+    properties: {}
+    required: []
+
 - name: detectUserSentiment
   description: Analyze the user's emotional state from recent message history.
   parameters:

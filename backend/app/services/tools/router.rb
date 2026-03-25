@@ -47,7 +47,9 @@ module Tools
         "extractDocumentData" => method(:handle_extract_document),
         "validateExtractedData" => method(:handle_validate_fields),
         "getAvailableSlots" => method(:handle_get_slots),
-        "bookAppointment" => method(:handle_book_appointment)
+        "bookAppointment" => method(:handle_book_appointment),
+        "cancelAppointment" => method(:handle_cancel_appointment),
+        "getMyBookings" => method(:handle_get_bookings)
       )
     end
 
@@ -124,6 +126,31 @@ module Tools
         { success: false, error: e.message }
       rescue Scheduling::SlotManager::SlotNotFoundError => e
         { success: false, error: e.message }
+      end
+    end
+
+    def handle_cancel_appointment(args, session: nil, **_)
+      booking_id = args["bookingId"]
+      booking = Booking.find_by(id: booking_id)
+      return { success: false, error: "Booking not found." } unless booking
+
+      begin
+        Scheduling::ReschedulingService.cancel!(booking)
+        { success: true, data: { booking_id: booking.id, status: "cancelled" } }
+      rescue Scheduling::ReschedulingService::TooLateError => e
+        { success: false, error: e.message }
+      end
+    end
+
+    def handle_get_bookings(args, session: nil, **_)
+      if session
+        bookings = Scheduling::ReschedulingService.bookings_for(session)
+        formatted = bookings.map do |b|
+          { booking_id: b.id, starts_at: b.starts_at.to_s, service_type: b.service_type, status: b.status }
+        end
+        { success: true, data: { bookings: formatted, count: formatted.size } }
+      else
+        { success: true, data: { bookings: [], count: 0 } }
       end
     end
 
