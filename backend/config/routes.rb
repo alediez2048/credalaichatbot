@@ -5,5 +5,8 @@ Rails.application.routes.draw do
   root "home#index"
   get "/onboarding", to: "onboarding#chat", as: :onboarding
   post "/onboarding/reset", to: "onboarding#reset", as: :onboarding_reset
+  namespace :api do
+    resources :documents, only: [:create]
+  end
   get "up" => "rails/health#show", as: :rails_health_check
 end

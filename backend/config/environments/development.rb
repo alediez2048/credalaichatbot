@@ -21,4 +21,5 @@ Rails.application.configure do
   config.action_cable.disable_request_forgery_protection = true
   # Allow boot without credentials/master.key in dev (use a secret if missing or blank)
   config.secret_key_base = ENV["SECRET_KEY_BASE"].presence || SecureRandom.hex(64)
+  config.active_storage.service = :local
 end

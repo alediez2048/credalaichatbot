@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react"
 import { createRoot } from "react-dom/client"
 import { createConsumer } from "@rails/actioncable"
+import FileUpload from "./FileUpload"
 
 function ChatApp() {
   const rootEl = document.getElementById("chat-root")
@@ -172,6 +173,18 @@ function ChatApp() {
         )}
         <div ref={messagesEndRef} />
       </div>
+      {currentStep === "document_upload" && !isCompleted && (
+        <FileUpload
+          sessionId={sessionId}
+          onUploadComplete={(doc) => {
+            setMessages((prev) => [...prev, {
+              id: null,
+              role: "assistant",
+              content: `Document "${doc.document_type}" uploaded successfully. You can upload more or send a message to continue.`
+            }])
+          }}
+        />
+      )}
       {!isCompleted && (
         <form onSubmit={handleSubmit} className="border-t border-[#E0E0E0] p-3">
           <div className="flex gap-2">
