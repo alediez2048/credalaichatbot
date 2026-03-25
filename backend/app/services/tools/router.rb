@@ -44,7 +44,8 @@ module Tools
         "startOnboarding" => method(:handle_start_onboarding),
         "saveOnboardingProgress" => method(:handle_save_progress),
         "getOnboardingState" => method(:handle_get_state),
-        "extractDocumentData" => method(:handle_extract_document)
+        "extractDocumentData" => method(:handle_extract_document),
+        "validateExtractedData" => method(:handle_validate_fields)
       )
     end
 
@@ -77,6 +78,24 @@ module Tools
         { success: true, data: { current_step: session.current_step, progress_percent: session.progress_percent, collected_data: session.metadata } }
       else
         { success: true, data: { message: "Session not available." } }
+      end
+    end
+
+    def handle_validate_fields(args, session: nil, **_)
+      document_id = args["document_id"]
+      document = Document.find_by(id: document_id)
+
+      if document
+        summary = Documents::FieldValidator.build_review_summary(document)
+        result = Documents::FieldValidator.classify_document(document)
+        { success: true, data: {
+          summary: summary,
+          auto_accepted: result[:auto_accepted].size,
+          needs_review: result[:needs_review].size,
+          needs_correction: result[:needs_correction].size
+        }}
+      else
+        { success: false, error: "Document not found." }
       end
     end
 
