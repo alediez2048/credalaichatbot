@@ -19,29 +19,25 @@ class OnboardingChatChannel < ApplicationCable::Channel
     body = data["body"].to_s.strip
     return if body.blank?
 
-    # Persist user message (client shows it optimistically)
-    user_message = @onboarding_session.messages.create!(role: "user", content: body)
-
-    # Build context and stream assistant reply
-    history = @onboarding_session.messages.where.not(id: user_message.id).order(:created_at).map { |m| { role: m.role, content: m.content.to_s } }
-    system_prompt = "You are a helpful onboarding assistant. Guide the user through the process conversationally."
-    messages = LLM::ContextBuilder.build(system_prompt: system_prompt, history: history, current_message: body)
+    # Persist user message
+    @onboarding_session.messages.create!(role: "user", content: body)
 
     broadcast_to @onboarding_session, { type: "start" }
 
-    full_content = +""
-    chat_service = LLM::ChatService.new
-    chat_service.stream_chat(
-      messages: messages,
-      session_id: @onboarding_session.id,
-      user_id: @onboarding_session.user_id
-    ) do |token|
-      full_content << token
-      broadcast_to @onboarding_session, { type: "token", content: token }
-    end
+    # Use orchestrator for step-aware, tool-calling responses
+    orchestrator = Onboarding::Orchestrator.new(@onboarding_session)
+    result = orchestrator.process(body)
 
-    assistant_message = @onboarding_session.messages.create!(role: "assistant", content: full_content)
-    broadcast_to @onboarding_session, { type: "done", id: assistant_message.id, content: full_content }
+    content = result[:content]
+    assistant_message = @onboarding_session.messages.create!(role: "assistant", content: content)
+
+    broadcast_to @onboarding_session, {
+      type: "done",
+      id: assistant_message.id,
+      content: content,
+      current_step: @onboarding_session.reload.current_step,
+      progress_percent: @onboarding_session.progress_percent
+    }
   rescue StandardError => e
     Rails.logger.error "[OnboardingChatChannel] #{e.class}: #{e.message}"
     broadcast_to @onboarding_session, { type: "error", message: "Something went wrong. Please try again." }

@@ -13,17 +13,16 @@ module LLM
     # @param session_id [String, Integer, nil] OnboardingSession ID for tracing (P0-005)
     # @param user_id [String, Integer, nil] User ID for tracing when available
     # @return [Hash] raw API response; check response.dig("choices", 0, "message", "tool_calls") for tool calls
-    def chat(messages:, session_id: nil, user_id: nil)
+    # @param tools [Array, nil] override tool definitions for this call (nil = use all, [] = no tools)
+    def chat(messages:, session_id: nil, user_id: nil, tools: :default)
       if @client.nil?
         return { "choices" => [], "error" => "OPENAI_API_KEY not set" }
       end
 
       model = ENV.fetch("OPENAI_MODEL", "gpt-4o")
-      params = {
-        model: model,
-        messages: messages,
-        tools: @tool_definitions
-      }
+      effective_tools = tools == :default ? @tool_definitions : tools
+      params = { model: model, messages: messages }
+      params[:tools] = effective_tools if effective_tools.present?
 
       Observability::Tracer.trace_llm_call(
         session_id: session_id,
