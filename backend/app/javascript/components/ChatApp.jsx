@@ -54,7 +54,12 @@ function ChatApp() {
               if (stepLabel) stepLabel.textContent = `Step: ${(data.current_step || "").replace(/_/g, " ")}`
             }
           } else if (data.type === "error") {
-            setMessages((prev) => [...prev, { id: null, role: "assistant", content: data.message || "Something went wrong." }])
+            setMessages((prev) => [...prev, {
+              id: null,
+              role: "error",
+              content: data.message || "Something went wrong.",
+              retryable: data.retryable !== false
+            }])
             setStreamingContent("")
             setIsStreaming(false)
           }
@@ -71,6 +76,15 @@ function ChatApp() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages, streamingContent])
+
+  const handleRetry = () => {
+    // Find the last user message and resend it
+    const lastUserMsg = [...messages].reverse().find((m) => m.role === "user")
+    if (!lastUserMsg || !subscriptionRef.current || isStreaming) return
+    // Remove the error message
+    setMessages((prev) => prev.filter((m) => m.role !== "error"))
+    subscriptionRef.current.perform("send_message", { body: lastUserMsg.content })
+  }
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -117,15 +131,29 @@ function ChatApp() {
             key={m.id ?? `msg-${m.role}-${messages.indexOf(m)}`}
             className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
           >
-            <div
-              className={`max-w-[85%] rounded-2xl px-4 py-2 text-sm font-light ${
-                m.role === "user"
-                  ? "bg-[#6D46DE] text-white"
-                  : "bg-[rgba(0,0,0,0.03)] text-[#333333]"
-              }`}
-            >
-              <div className="whitespace-pre-wrap break-words">{m.content}</div>
-            </div>
+            {m.role === "error" ? (
+              <div className="max-w-[85%] rounded-2xl border border-[#B3014D]/20 bg-[#B3014D]/5 px-4 py-2 text-sm font-light text-[#B3014D]">
+                <div className="whitespace-pre-wrap break-words">{m.content}</div>
+                {m.retryable && (
+                  <button
+                    onClick={handleRetry}
+                    className="mt-2 text-xs font-medium text-[#6D46DE] hover:opacity-80 underline"
+                  >
+                    Try again
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div
+                className={`max-w-[85%] rounded-2xl px-4 py-2 text-sm font-light ${
+                  m.role === "user"
+                    ? "bg-[#6D46DE] text-white"
+                    : "bg-[rgba(0,0,0,0.03)] text-[#333333]"
+                }`}
+              >
+                <div className="whitespace-pre-wrap break-words">{m.content}</div>
+              </div>
+            )}
           </div>
         ))}
         {streamingContent && (

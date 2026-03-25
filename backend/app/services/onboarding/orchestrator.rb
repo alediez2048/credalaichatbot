@@ -15,7 +15,7 @@ module Onboarding
     end
 
     # @param user_message [String]
-    # @return [Hash] { content: String, step_changed: Boolean }
+    # @return [Hash] { content: String, step_changed: Boolean, error: Hash|nil }
     def process(user_message)
       # Advance pending step transitions from the previous turn before processing
       maybe_advance_pending_step
@@ -26,14 +26,14 @@ module Onboarding
       messages = build_messages(step_def, user_message)
       tools = tools_for_step(step_def)
 
-      # LLM call + tool call loop
-      response = call_llm(messages, tools)
+      # LLM call + tool call loop with error handling
+      response = call_llm_with_retry(messages, tools)
       iterations = 0
 
       while has_tool_calls?(response) && iterations < MAX_TOOL_ITERATIONS
-        tool_results = execute_tool_calls(response)
+        tool_results = execute_tool_calls_safe(response)
         messages += assistant_message_from(response) + tool_results
-        response = call_llm(messages, tools)
+        response = call_llm_with_retry(messages, tools)
         iterations += 1
       end
 
@@ -44,6 +44,10 @@ module Onboarding
       update_progress
 
       { content: content, step_changed: @session.current_step != step_before }
+    rescue => e
+      error_info = Onboarding::ErrorHandler.handle(e)
+      Rails.logger.error "[Orchestrator] #{error_info[:logged_message]}"
+      { content: error_info[:user_message], step_changed: false, error: error_info }
     end
 
     private
@@ -97,12 +101,30 @@ module Onboarding
     def call_llm(messages, tools)
       params = { messages: messages, session_id: @session.id, user_id: @session.user_id }
       params[:tools] = tools if tools.present?
-      @chat_service.chat(**params)
+      Timeout.timeout(30) { @chat_service.chat(**params) }
+    end
+
+    def call_llm_with_retry(messages, tools, retries: 1)
+      call_llm(messages, tools)
+    rescue Timeout::Error, Net::OpenTimeout, Net::ReadTimeout => e
+      if retries > 0
+        Rails.logger.warn "[Orchestrator] LLM timeout, retrying (#{retries} left)"
+        call_llm_with_retry(messages, tools, retries: retries - 1)
+      else
+        raise
+      end
     end
 
     def has_tool_calls?(response)
       tool_calls = response.dig("choices", 0, "message", "tool_calls")
       tool_calls.is_a?(Array) && tool_calls.any?
+    end
+
+    def execute_tool_calls_safe(response)
+      execute_tool_calls(response)
+    rescue => e
+      Rails.logger.error "[Orchestrator] Tool call failed: #{e.class}: #{e.message}"
+      [{ role: "tool", tool_call_id: "error", content: { success: false, error: "Tool execution failed. Please try again." }.to_json }]
     end
 
     def execute_tool_calls(response)
