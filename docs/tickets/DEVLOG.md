@@ -132,6 +132,25 @@ Single place to record what landed per ticket, decisions, and follow-ups.
 
 ---
 
+### P5-005 — Prompt regression testing in CI
+**Date:** 2026-03-26
+**Branch:** feature/P5-005-ci-eval
+
+**What shipped:**
+- `.github/workflows/eval.yml` — GitHub Actions workflow triggered on prompt/LLM/orchestrator/eval changes
+- Enhanced `eval:ci` rake task with JSON report output and configurable threshold
+- `config/ci/eval_config.yml` — threshold, max cost, timeout settings
+- PR comment via `actions/github-script` with pass rate, failures, and status
+- `docs/ops/ci-eval.md` — guide for adding cases, debugging failures, local testing with `act`
+- `.env.example` updated with `EVAL_PASS_THRESHOLD`
+
+**Decisions:**
+- Eval runs only on PRs touching prompt/LLM paths (not every commit) to control API costs
+- Default threshold 85% — configurable via GitHub Actions variable or env var
+- CI eval runs tagged `is_eval: true` and posted to `credal-onboarding-ci` LangSmith project
+
+---
+
 ### P5-004 — Admin analytics dashboard
 **Date:** 2026-03-26
 **Branch:** feature/P5-004-admin-dashboard

@@ -1,0 +1,11 @@
+# CI eval configuration
+# Override threshold via EVAL_PASS_THRESHOLD env var in GitHub Actions
+
+# Minimum pass rate (%) to pass CI
+threshold: 85
+
+# Maximum USD cost per eval run — abort if exceeded
+max_cost_per_run: 5.0
+
+# Timeout per individual test case (seconds)
+timeout_per_case: 30

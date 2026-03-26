@@ -33,18 +33,37 @@ namespace :eval do
 
   desc "Run eval suite for CI — exits with code 1 if pass rate below threshold"
   task ci: :environment do
-    threshold = ENV.fetch("EVAL_THRESHOLD", "80").to_f
-    results = Eval::Runner.run
+    config = load_ci_config
+    threshold = ENV.fetch("EVAL_PASS_THRESHOLD", config["threshold"].to_s).to_f
+
+    puts "Loading eval cases..."
+    cases = Eval::CaseLoader.load_all
+    puts "Running #{cases.size} eval cases (threshold: #{threshold}%)..."
+
+    results = Eval::Runner.run(cases: cases)
     report = Eval::Report.generate(results)
+
+    # Write JSON report for GitHub Actions PR comment
+    report_path = Rails.root.join("tmp/eval_report.json")
+    File.write(report_path, JSON.pretty_generate(report))
 
     puts "Pass rate: #{report[:pass_rate]}% (threshold: #{threshold}%)"
 
     if report[:pass_rate] < threshold
-      puts "❌ BELOW THRESHOLD"
-      report[:failures].each { |f| puts "  ❌ #{f[:name]}: #{f[:reason]}" }
+      puts "FAIL: Pass rate #{report[:pass_rate]}% < threshold #{threshold}%"
+      report[:failures].each { |f| puts "  FAIL #{f[:name]}: #{f[:reason]}" }
       exit 1
     else
-      puts "✅ PASSED"
+      puts "PASS: Pass rate #{report[:pass_rate]}% >= threshold #{threshold}%"
     end
   end
+end
+
+def load_ci_config
+  path = Rails.root.join("config/ci/eval_config.yml")
+  return { "threshold" => 85, "max_cost_per_run" => 5.0, "timeout_per_case" => 30 } unless File.exist?(path)
+  YAML.load_file(path)
+rescue => e
+  Rails.logger.warn("[eval:ci] Failed to load CI config: #{e.message}")
+  { "threshold" => 85 }
 end
