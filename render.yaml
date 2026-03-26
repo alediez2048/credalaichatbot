@@ -1,0 +1,73 @@
+databases:
+  - name: onboarding-db
+    plan: free
+    databaseName: onboarding_assistant_production
+    user: onboarding
+
+services:
+  - type: redis
+    name: onboarding-redis
+    plan: free
+    maxmemoryPolicy: allkeys-lru
+    ipAllowList: []
+
+  - type: web
+    name: onboarding-assistant
+    runtime: ruby
+    plan: free
+    rootDir: backend
+    buildCommand: ./bin/render-build.sh
+    startCommand: bundle exec puma -C config/puma.rb
+    healthCheckPath: /up
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: onboarding-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: onboarding-redis
+          type: redis
+          property: connectionString
+      - key: RAILS_ENV
+        value: production
+      - key: RAILS_SERVE_STATIC_FILES
+        value: "true"
+      - key: RAILS_LOG_TO_STDOUT
+        value: "true"
+      - key: SECRET_KEY_BASE
+        generateValue: true
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        value: gpt-4o
+      - key: LANGSMITH_API_KEY
+        sync: false
+      - key: LANGSMITH_PROJECT
+        value: credal-onboarding-prod
+
+  - type: worker
+    name: onboarding-worker
+    runtime: ruby
+    plan: free
+    rootDir: backend
+    buildCommand: bundle install
+    startCommand: bundle exec sidekiq
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: onboarding-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: onboarding-redis
+          type: redis
+          property: connectionString
+      - key: RAILS_ENV
+        value: production
+      - key: SECRET_KEY_BASE
+        generateValue: true
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: LANGSMITH_API_KEY
+        sync: false
