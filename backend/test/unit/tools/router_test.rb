@@ -41,10 +41,11 @@ module Tools
       assert result[:success]
     end
 
-    test "stub tools return coming soon message" do
+    test "detectUserSentiment returns fallback result without session" do
       result = @router.call("detectUserSentiment", {})
       assert result[:success]
-      assert_match /coming soon/i, result.dig(:data, :message).to_s
+      assert_equal "neutral", result.dig(:data, :label)
+      assert_equal 0.5, result.dig(:data, :confidence)
     end
 
     test "saveOnboardingProgress persists data to session" do

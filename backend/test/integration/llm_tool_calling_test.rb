@@ -5,12 +5,12 @@ require "test_helper"
 class LLMToolCallingIntegrationTest < ActiveSupport::TestCase
   # Full path: ChatService → optional tool_calls in response → Router → result.
   # Without OPENAI_API_KEY we only test the pipe with a mock or skip.
-  test "tool definitions load from YAML and have 9 tools" do
+  test "tool definitions load from YAML and have 11 tools" do
     validator = Tools::SchemaValidator.new
-    assert_equal 9, validator.tool_names.size
+    assert_equal 11, validator.tool_names.size
     assert_includes validator.tool_names, "getOnboardingState"
     defs = validator.definitions_for_openai
-    assert_equal 9, defs.size
+    assert_equal 11, defs.size
     assert defs.all? { |d| d[:type] == "function" && d[:function][:name].present? }
   end
 
