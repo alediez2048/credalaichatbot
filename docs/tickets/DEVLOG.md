@@ -132,6 +132,31 @@ Single place to record what landed per ticket, decisions, and follow-ups.
 
 ---
 
+### P5-002 — End-to-end tracing dashboard
+**Date:** 2026-03-26
+**Branch:** feature/P5-002-tracing-dashboard
+
+**What shipped:**
+- Enhanced `Observability::Tracer` with metadata hash (`onboarding_step`, `message_count`, `is_eval`), `parent_run_id` for hierarchy, and new `trace_orchestrator_call` method
+- Parent/child run structure: `orchestrator.process` (chain) → `openai-chat-completion` (llm) + `tool:*` (tool) child runs
+- `RunContext` struct yielded by `trace_orchestrator_call` — tracks child runs with name, type, and duration
+- `Orchestrator#process` wraps each turn in `trace_orchestrator_call`, passes step metadata and `is_eval` flag
+- `ChatService#chat` accepts `metadata` and `parent_run_id` kwargs, forwarded to tracer
+- `Eval::Runner` tags all eval runs with `is_eval: true` for dashboard filtering
+- `docs/ops/langsmith-dashboard.md` — team guide with filter presets, debugging workflows, alert setup
+- 10 tracer unit tests covering enhanced metadata, parent/child runs, and orchestrator tracing
+
+**Decisions:**
+- `RunContext` is a lightweight Struct (not a full class) — keeps overhead minimal for the no-op path
+- Tool durations tracked with monotonic clock in orchestrator, reported as `duration_ms` on child runs
+- `is_eval` defaults to `false` in orchestrator; only `Eval::Runner` sets it to `true`
+
+**Follow-ups / debt:**
+- Verify traces with real LangSmith API key (parent/child hierarchy visible in dashboard)
+- P5-003 will add cost tracking per trace using token_usage metadata
+
+---
+
 ### P0-005 — Observability & tracing setup
 **Date:** 2026-03-11  
 **Branch:** feature/P0-005-observability-tracing

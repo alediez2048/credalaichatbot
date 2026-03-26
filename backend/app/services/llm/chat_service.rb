@@ -14,7 +14,9 @@ module LLM
     # @param user_id [String, Integer, nil] User ID for tracing when available
     # @return [Hash] raw API response; check response.dig("choices", 0, "message", "tool_calls") for tool calls
     # @param tools [Array, nil] override tool definitions for this call (nil = use all, [] = no tools)
-    def chat(messages:, session_id: nil, user_id: nil, tools: :default)
+    # @param metadata [Hash] Additional trace metadata (onboarding_step, etc.)
+    # @param parent_run_id [String, nil] Parent run UUID for hierarchy
+    def chat(messages:, session_id: nil, user_id: nil, tools: :default, metadata: {}, parent_run_id: nil)
       if @client.nil?
         return { "choices" => [], "error" => "OPENAI_API_KEY not set" }
       end
@@ -28,7 +30,9 @@ module LLM
         session_id: session_id,
         user_id: user_id,
         model: model,
-        messages: messages
+        messages: messages,
+        metadata: metadata,
+        parent_run_id: parent_run_id
       ) do
         response = @client.chat.completions.create(params)
         to_response_hash(response)

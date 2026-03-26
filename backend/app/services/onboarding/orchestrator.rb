@@ -16,34 +16,49 @@ module Onboarding
 
     # @param user_message [String]
     # @return [Hash] { content: String, step_changed: Boolean, error: Hash|nil }
-    def process(user_message)
+    # @param user_message [String]
+    # @param is_eval [Boolean] tag trace as eval run (P5-002)
+    # @return [Hash] { content: String, step_changed: Boolean, error: Hash|nil }
+    def process(user_message, is_eval: false)
       # Advance pending step transitions from the previous turn before processing
       maybe_advance_pending_step
 
       step_before = @session.current_step
       step_def = current_step_definition
 
-      messages = build_messages(step_def, user_message)
-      tools = tools_for_step(step_def)
+      trace_metadata = {
+        onboarding_step: @session.current_step,
+        message_count: @session.messages.count,
+        is_eval: is_eval
+      }
 
-      # LLM call + tool call loop with error handling
-      response = call_llm_with_retry(messages, tools)
-      iterations = 0
+      Observability::Tracer.trace_orchestrator_call(
+        session_id: @session.id,
+        user_id: @session.user_id,
+        metadata: trace_metadata
+      ) do |run_context|
+        messages = build_messages(step_def, user_message)
+        tools = tools_for_step(step_def)
 
-      while has_tool_calls?(response) && iterations < MAX_TOOL_ITERATIONS
-        tool_results = execute_tool_calls_safe(response)
-        messages += assistant_message_from(response) + tool_results
-        response = call_llm_with_retry(messages, tools)
-        iterations += 1
+        # LLM call + tool call loop with error handling
+        response = call_llm_with_retry(messages, tools, parent_run_id: run_context.run_id)
+        iterations = 0
+
+        while has_tool_calls?(response) && iterations < MAX_TOOL_ITERATIONS
+          tool_results = execute_tool_calls_safe(response, run_context: run_context)
+          messages += assistant_message_from(response) + tool_results
+          response = call_llm_with_retry(messages, tools, parent_run_id: run_context.run_id)
+          iterations += 1
+        end
+
+        content = extract_content(response)
+        content = "I'm here to help with your onboarding. What can I assist you with?" if content.blank?
+
+        mark_step_ready_to_advance(step_def)
+        update_progress
+
+        { content: content, step_changed: @session.current_step != step_before }
       end
-
-      content = extract_content(response)
-      content = "I'm here to help with your onboarding. What can I assist you with?" if content.blank?
-
-      mark_step_ready_to_advance(step_def)
-      update_progress
-
-      { content: content, step_changed: @session.current_step != step_before }
     rescue => e
       error_info = Onboarding::ErrorHandler.handle(e)
       Rails.logger.error "[Orchestrator] #{error_info[:logged_message]}"
@@ -100,18 +115,20 @@ module Onboarding
       all_defs.select { |t| tool_names.include?(t.dig(:function, :name) || t.dig("function", "name")) }
     end
 
-    def call_llm(messages, tools)
+    def call_llm(messages, tools, parent_run_id: nil)
       params = { messages: messages, session_id: @session.id, user_id: @session.user_id }
       params[:tools] = tools if tools.present?
+      params[:metadata] = { onboarding_step: @session.current_step }
+      params[:parent_run_id] = parent_run_id
       Timeout.timeout(30) { @chat_service.chat(**params) }
     end
 
-    def call_llm_with_retry(messages, tools, retries: 1)
-      call_llm(messages, tools)
+    def call_llm_with_retry(messages, tools, parent_run_id: nil, retries: 1)
+      call_llm(messages, tools, parent_run_id: parent_run_id)
     rescue Timeout::Error, Net::OpenTimeout, Net::ReadTimeout => e
       if retries > 0
         Rails.logger.warn "[Orchestrator] LLM timeout, retrying (#{retries} left)"
-        call_llm_with_retry(messages, tools, retries: retries - 1)
+        call_llm_with_retry(messages, tools, parent_run_id: parent_run_id, retries: retries - 1)
       else
         raise
       end
@@ -122,14 +139,14 @@ module Onboarding
       tool_calls.is_a?(Array) && tool_calls.any?
     end
 
-    def execute_tool_calls_safe(response)
-      execute_tool_calls(response)
+    def execute_tool_calls_safe(response, run_context: nil)
+      execute_tool_calls(response, run_context: run_context)
     rescue => e
       Rails.logger.error "[Orchestrator] Tool call failed: #{e.class}: #{e.message}"
       [{ role: "tool", tool_call_id: "error", content: { success: false, error: "Tool execution failed. Please try again." }.to_json }]
     end
 
-    def execute_tool_calls(response)
+    def execute_tool_calls(response, run_context: nil)
       tool_calls = response.dig("choices", 0, "message", "tool_calls") || []
       tool_calls.map do |tc|
         function = tc["function"] || tc[:function] || {}
@@ -137,7 +154,12 @@ module Onboarding
         args = function["arguments"] || function[:arguments] || "{}"
         args = JSON.parse(args) if args.is_a?(String)
 
+        start_mono = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         result = @router.call(name, args, context: { session: @session })
+        duration_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_mono) * 1000).round
+
+        run_context&.add_child_run(name: "tool:#{name}", run_type: "tool", duration_ms: duration_ms)
+
         {
           role: "tool",
           tool_call_id: tc["id"] || tc[:id],

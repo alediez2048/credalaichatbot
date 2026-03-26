@@ -22,7 +22,7 @@ module Eval
       )
 
       orchestrator = Onboarding::Orchestrator.new(session, chat_service: chat_service)
-      response = orchestrator.process(tc["input"])
+      response = orchestrator.process(tc["input"], is_eval: true)
 
       score = Scorer.score(
         response: response[:content],
