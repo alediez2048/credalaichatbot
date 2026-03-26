@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_03_25_145314) do
+ActiveRecord::Schema[7.2].define(version: 2026_03_26_210100) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -113,6 +113,19 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_25_145314) do
     t.index ["document_id"], name: "index_extracted_fields_on_document_id"
   end
 
+  create_table "llm_usages", force: :cascade do |t|
+    t.bigint "onboarding_session_id", null: false
+    t.string "model", null: false
+    t.integer "prompt_tokens", default: 0
+    t.integer "completion_tokens", default: 0
+    t.integer "total_tokens", default: 0
+    t.decimal "cost_usd", precision: 10, scale: 6, default: "0.0"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_at"], name: "index_llm_usages_on_created_at"
+    t.index ["onboarding_session_id"], name: "index_llm_usages_on_onboarding_session_id"
+  end
+
   create_table "messages", force: :cascade do |t|
     t.bigint "onboarding_session_id", null: false
     t.string "role", null: false
@@ -170,6 +183,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_25_145314) do
   add_foreign_key "bookings", "onboarding_sessions"
   add_foreign_key "documents", "onboarding_sessions"
   add_foreign_key "extracted_fields", "documents"
+  add_foreign_key "llm_usages", "onboarding_sessions"
   add_foreign_key "messages", "onboarding_sessions"
   add_foreign_key "onboarding_sessions", "users"
   add_foreign_key "sentiment_readings", "onboarding_sessions"

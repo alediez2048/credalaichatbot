@@ -132,6 +132,27 @@ Single place to record what landed per ticket, decisions, and follow-ups.
 
 ---
 
+### P5-003 — Cost tracking & projection model
+**Date:** 2026-03-26
+**Branch:** feature/P5-003-cost-tracking
+
+**What shipped:**
+- `LLMUsage` model with migration — tracks per-call token usage and USD cost per session
+- `Cost::Calculator` — computes USD cost from model + token counts using `config/ai_pricing.yml`
+- `Cost::Tracker` — records usage after each `ChatService#chat` call, graceful no-op on missing data
+- `Cost::Projector` — projects monthly/annual cost at N users based on historical session averages
+- `cost:report` rake task — per-session and aggregate cost summary
+- `cost:project[N]` rake task — cost projection for N users/month
+- Integration with `ChatService#chat` — usage recorded automatically after every LLM call
+- 10 unit tests: calculator accuracy, tracker record/no-op, projector with/without data
+
+**Decisions:**
+- Model named `LLMUsage` (not `LlmUsage`) to match Rails inflection of `llm_usages` table
+- Pricing in YAML config file for easy updates without code changes
+- Projector uses `AVG_SESSIONS_PER_USER = 1.2` constant — adjustable based on real data later
+
+---
+
 ### P5-002 — End-to-end tracing dashboard
 **Date:** 2026-03-26
 **Branch:** feature/P5-002-tracing-dashboard

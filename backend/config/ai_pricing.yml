@@ -1,0 +1,12 @@
+# OpenAI model pricing — rates per 1,000 tokens (USD)
+# Source: https://openai.com/pricing (as of 2025-05)
+models:
+  gpt-4o:
+    input_per_1k: 0.0025
+    output_per_1k: 0.01
+  gpt-4o-mini:
+    input_per_1k: 0.00015
+    output_per_1k: 0.0006
+  gpt-4-turbo:
+    input_per_1k: 0.01
+    output_per_1k: 0.03

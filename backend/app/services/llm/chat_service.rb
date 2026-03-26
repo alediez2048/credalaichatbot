@@ -26,7 +26,7 @@ module LLM
       params = { model: model, messages: messages }
       params[:tools] = effective_tools if effective_tools.present?
 
-      Observability::Tracer.trace_llm_call(
+      response = Observability::Tracer.trace_llm_call(
         session_id: session_id,
         user_id: user_id,
         model: model,
@@ -34,9 +34,15 @@ module LLM
         metadata: metadata,
         parent_run_id: parent_run_id
       ) do
-        response = @client.chat.completions.create(params)
-        to_response_hash(response)
+        r = @client.chat.completions.create(params)
+        to_response_hash(r)
       end
+
+      # P5-003: Record token usage for cost tracking
+      usage = response["usage"] || response[:usage]
+      Cost::Tracker.record(session_id: session_id, model: model, usage: usage)
+
+      response
     end
 
     def tool_definitions

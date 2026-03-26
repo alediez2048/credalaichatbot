@@ -7,6 +7,7 @@ class OnboardingSession < ApplicationRecord
   has_many :bookings, dependent: :destroy
   has_many :audit_logs, dependent: :destroy
   has_many :sentiment_readings, dependent: :destroy
+  has_many :llm_usages, class_name: "LLMUsage", dependent: :destroy
 
   scope :anonymous, -> { where(user_id: nil) }
   scope :for_user, ->(user) { where(user: user) }
