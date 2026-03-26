@@ -1,0 +1,147 @@
+<div class="max-w-7xl mx-auto px-4 py-8">
+  <h1 class="text-2xl font-bold text-gray-900 mb-8">Admin Dashboard</h1>
+
+  <%# === Session Stats === %>
+  <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+    <% stats = @stats[:session_stats] %>
+    <div class="bg-white rounded-lg shadow p-4">
+      <p class="text-sm text-gray-500">Total Sessions</p>
+      <p class="text-2xl font-bold"><%= stats[:total] %></p>
+    </div>
+    <div class="bg-white rounded-lg shadow p-4">
+      <p class="text-sm text-gray-500">Completed</p>
+      <p class="text-2xl font-bold text-green-600"><%= stats[:completed] %></p>
+    </div>
+    <div class="bg-white rounded-lg shadow p-4">
+      <p class="text-sm text-gray-500">Active</p>
+      <p class="text-2xl font-bold text-blue-600"><%= stats[:active] %></p>
+    </div>
+    <div class="bg-white rounded-lg shadow p-4">
+      <p class="text-sm text-gray-500">Completion Rate</p>
+      <p class="text-2xl font-bold"><%= stats[:completion_rate] %>%</p>
+    </div>
+    <div class="bg-white rounded-lg shadow p-4">
+      <p class="text-sm text-gray-500">Avg Completion</p>
+      <p class="text-2xl font-bold"><%= stats[:avg_completion_minutes] %> min</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+    <%# === Completion Funnel === %>
+    <div class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-lg font-semibold text-gray-800 mb-4">Completion Funnel</h2>
+      <table class="w-full">
+        <thead>
+          <tr class="text-left text-sm text-gray-500">
+            <th class="pb-2">Step</th>
+            <th class="pb-2 text-right">Count</th>
+            <th class="pb-2 text-right">%</th>
+            <th class="pb-2 w-1/3"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @stats[:step_funnel].each do |entry| %>
+            <tr class="border-t border-gray-100">
+              <td class="py-2 text-sm font-medium"><%= entry[:step].humanize %></td>
+              <td class="py-2 text-sm text-right"><%= entry[:count] %></td>
+              <td class="py-2 text-sm text-right"><%= entry[:percent] %>%</td>
+              <td class="py-2 pl-4">
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                  <div class="bg-indigo-500 h-2 rounded-full" style="width: <%= [entry[:percent], 100].min %>%"></div>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <%# === Cost Summary === %>
+    <div class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-lg font-semibold text-gray-800 mb-4">Cost Summary</h2>
+      <% cost = @stats[:cost_summary] %>
+      <dl class="space-y-3">
+        <div class="flex justify-between">
+          <dt class="text-sm text-gray-500">Total Spend</dt>
+          <dd class="text-sm font-medium">$<%= sprintf("%.4f", cost[:total_cost]) %></dd>
+        </div>
+        <div class="flex justify-between">
+          <dt class="text-sm text-gray-500">Avg / Session</dt>
+          <dd class="text-sm font-medium">$<%= sprintf("%.4f", cost[:avg_cost_per_session]) %></dd>
+        </div>
+        <div class="flex justify-between">
+          <dt class="text-sm text-gray-500">Last 7 Days</dt>
+          <dd class="text-sm font-medium">$<%= sprintf("%.4f", cost[:last_7_days_cost]) %></dd>
+        </div>
+        <div class="flex justify-between">
+          <dt class="text-sm text-gray-500">Total Tokens</dt>
+          <dd class="text-sm font-medium"><%= number_with_delimiter(cost[:total_tokens]) %></dd>
+        </div>
+      </dl>
+
+      <%# === Eval Summary === %>
+      <% if @stats[:eval_summary] %>
+        <h2 class="text-lg font-semibold text-gray-800 mt-6 mb-4">Eval Results</h2>
+        <% eval_data = @stats[:eval_summary] %>
+        <dl class="space-y-3">
+          <div class="flex justify-between">
+            <dt class="text-sm text-gray-500">Pass Rate</dt>
+            <dd class="text-sm font-bold <%= eval_data[:pass_rate].to_f >= 85 ? 'text-green-600' : 'text-red-600' %>">
+              <%= eval_data[:pass_rate] %>%
+            </dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-sm text-gray-500">Passed / Total</dt>
+            <dd class="text-sm font-medium"><%= eval_data[:passed] %> / <%= eval_data[:total] %></dd>
+          </div>
+        </dl>
+        <% if eval_data[:failures]&.any? %>
+          <p class="text-xs text-gray-400 mt-3">Recent failures:</p>
+          <ul class="text-xs text-red-500 mt-1 space-y-1">
+            <% eval_data[:failures].each do |f| %>
+              <li><%= f["name"] || f[:name] %></li>
+            <% end %>
+          </ul>
+        <% end %>
+      <% else %>
+        <p class="text-sm text-gray-400 mt-6">No eval data. Run <code class="bg-gray-100 px-1 rounded">rails eval:run</code></p>
+      <% end %>
+    </div>
+  </div>
+
+  <%# === Recent Sessions === %>
+  <div class="bg-white rounded-lg shadow p-6">
+    <h2 class="text-lg font-semibold text-gray-800 mb-4">Recent Sessions</h2>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-left text-gray-500 border-b">
+            <th class="pb-2">ID</th>
+            <th class="pb-2">User</th>
+            <th class="pb-2">Step</th>
+            <th class="pb-2 text-right">Progress</th>
+            <th class="pb-2 text-right">Messages</th>
+            <th class="pb-2 text-right">Cost</th>
+            <th class="pb-2 text-right">Created</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @stats[:recent_sessions].each do |s| %>
+            <tr class="border-t border-gray-50 hover:bg-gray-50">
+              <td class="py-2 font-mono text-xs"><%= s[:id] %></td>
+              <td class="py-2"><%= s[:user_id] || "anon" %></td>
+              <td class="py-2"><%= s[:current_step] %></td>
+              <td class="py-2 text-right"><%= s[:progress_percent] %>%</td>
+              <td class="py-2 text-right"><%= s[:message_count] %></td>
+              <td class="py-2 text-right">$<%= sprintf("%.4f", s[:cost]) %></td>
+              <td class="py-2 text-right text-gray-400"><%= s[:created_at]&.strftime("%b %d %H:%M") %></td>
+            </tr>
+          <% end %>
+          <% if @stats[:recent_sessions].empty? %>
+            <tr><td colspan="7" class="py-4 text-center text-gray-400">No sessions yet</td></tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

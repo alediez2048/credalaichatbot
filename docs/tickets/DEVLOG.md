@@ -132,6 +132,24 @@ Single place to record what landed per ticket, decisions, and follow-ups.
 
 ---
 
+### P5-004 — Admin analytics dashboard
+**Date:** 2026-03-26
+**Branch:** feature/P5-004-admin-dashboard
+
+**What shipped:**
+- `admin` boolean on `User` model with migration (default false)
+- `Admin::DashboardController` with admin-only auth guard
+- `Admin::DashboardStats` service: session stats, completion funnel, cost summary, eval results, recent sessions
+- Server-rendered dashboard view at `/admin/dashboard` with Tailwind — stat cards, funnel with progress bars, cost panel, eval panel, recent sessions table
+- 6 unit tests for DashboardStats, 5 controller tests for auth and rendering
+
+**Decisions:**
+- Server-rendered ERB + Tailwind (no JS charts) per primer scope — simple, fast, mobile-responsive
+- `DashboardStats.eval_summary` reads from `tmp/eval_report.json` (file-based, no DB table for eval results)
+- Recent sessions eager-loads messages and llm_usages to avoid N+1
+
+---
+
 ### P5-003 — Cost tracking & projection model
 **Date:** 2026-03-26
 **Branch:** feature/P5-003-cost-tracking

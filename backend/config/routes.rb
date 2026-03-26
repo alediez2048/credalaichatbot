@@ -14,5 +14,8 @@ Rails.application.routes.draw do
       end
     end
   end
+  namespace :admin do
+    get "dashboard", to: "dashboard#index", as: :dashboard
+  end
   get "up" => "rails/health#show", as: :rails_health_check
 end
