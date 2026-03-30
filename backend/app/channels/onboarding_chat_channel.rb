@@ -31,11 +31,13 @@ class OnboardingChatChannel < ApplicationCable::Channel
       return
     end
 
-    @onboarding_session.messages.create!(role: "user", content: body)
     broadcast_to @onboarding_session, { type: "start" }
 
-    orchestrator = Onboarding::Orchestrator.new(@onboarding_session)
-    result = orchestrator.process(body)
+    result = Onboarding::TurnProcessor.process(
+      session: @onboarding_session,
+      body: body,
+      channel: :web
+    )
 
     if result[:error]
       broadcast_to @onboarding_session, {
@@ -45,7 +47,7 @@ class OnboardingChatChannel < ApplicationCable::Channel
         category: result[:error][:category]
       }
     else
-      assistant_message = @onboarding_session.messages.create!(role: "assistant", content: result[:content])
+      assistant_message = result[:assistant_message]
       broadcast_to @onboarding_session, {
         type: "done",
         id: assistant_message.id,

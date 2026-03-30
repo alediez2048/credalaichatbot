@@ -1084,7 +1084,7 @@
             }
             return dispatcher.useContext(Context);
           }
-          function useState2(initialState) {
+          function useState3(initialState) {
             var dispatcher = resolveDispatcher();
             return dispatcher.useState(initialState);
           }
@@ -1092,7 +1092,7 @@
             var dispatcher = resolveDispatcher();
             return dispatcher.useReducer(reducer, initialArg, init);
           }
-          function useRef2(initialValue) {
+          function useRef3(initialValue) {
             var dispatcher = resolveDispatcher();
             return dispatcher.useRef(initialValue);
           }
@@ -1886,8 +1886,8 @@
           exports.useLayoutEffect = useLayoutEffect;
           exports.useMemo = useMemo;
           exports.useReducer = useReducer;
-          exports.useRef = useRef2;
-          exports.useState = useState2;
+          exports.useRef = useRef3;
+          exports.useState = useState3;
           exports.useSyncExternalStore = useSyncExternalStore;
           exports.useTransition = useTransition;
           exports.version = ReactVersion;
@@ -2383,9 +2383,9 @@
           if (typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ !== "undefined" && typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart === "function") {
             __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(new Error());
           }
-          var React2 = require_react();
+          var React3 = require_react();
           var Scheduler = require_scheduler();
-          var ReactSharedInternals = React2.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+          var ReactSharedInternals = React3.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
           var suppressWarning = false;
           function setSuppressWarning(newSuppressWarning) {
             {
@@ -3992,7 +3992,7 @@
             {
               if (props.value == null) {
                 if (typeof props.children === "object" && props.children !== null) {
-                  React2.Children.forEach(props.children, function(child) {
+                  React3.Children.forEach(props.children, function(child) {
                     if (child == null) {
                       return;
                     }
@@ -28979,7 +28979,7 @@
   start();
 
   // app/javascript/components/ChatApp.jsx
-  var import_react = __toESM(require_react());
+  var import_react2 = __toESM(require_react());
   var import_client = __toESM(require_client());
 
   // node_modules/@rails/actioncable/app/assets/javascripts/actioncable.esm.js
@@ -29469,31 +29469,217 @@
     }
   }
 
+  // app/javascript/components/FileUpload.jsx
+  var import_react = __toESM(require_react());
+  var ALLOWED_TYPES = ["image/png", "image/jpeg", "application/pdf"];
+  var MAX_SIZE = 10 * 1024 * 1024;
+  function FileUpload({ sessionId, onUploadComplete }) {
+    const [dragOver, setDragOver] = (0, import_react.useState)(false);
+    const [uploading, setUploading] = (0, import_react.useState)(false);
+    const [progress, setProgress] = (0, import_react.useState)(0);
+    const [error, setError] = (0, import_react.useState)(null);
+    const [success, setSuccess] = (0, import_react.useState)(null);
+    const fileInputRef = (0, import_react.useRef)(null);
+    const validateFile = (file) => {
+      if (!ALLOWED_TYPES.includes(file.type)) {
+        return "Unsupported file type. Please upload PNG, JPEG, or PDF.";
+      }
+      if (file.size > MAX_SIZE) {
+        return `File too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Maximum is 10 MB.`;
+      }
+      return null;
+    };
+    const uploadFile = async (file) => {
+      const validationError = validateFile(file);
+      if (validationError) {
+        setError(validationError);
+        return;
+      }
+      setError(null);
+      setSuccess(null);
+      setUploading(true);
+      setProgress(0);
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("session_id", sessionId);
+      formData.append("document_type", guessDocType(file.name));
+      try {
+        const xhr = new XMLHttpRequest();
+        xhr.upload.addEventListener("progress", (e) => {
+          if (e.lengthComputable) setProgress(Math.round(e.loaded / e.total * 100));
+        });
+        const result = await new Promise((resolve, reject) => {
+          xhr.onload = () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+              resolve(JSON.parse(xhr.responseText));
+            } else {
+              const body = JSON.parse(xhr.responseText);
+              reject(new Error(body.error || "Upload failed"));
+            }
+          };
+          xhr.onerror = () => reject(new Error("Network error"));
+          const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+          xhr.open("POST", "/api/documents");
+          if (csrfToken) xhr.setRequestHeader("X-CSRF-Token", csrfToken);
+          xhr.send(formData);
+        });
+        setSuccess(`${file.name} uploaded successfully.`);
+        if (onUploadComplete) onUploadComplete(result);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setUploading(false);
+        setProgress(0);
+      }
+    };
+    const guessDocType = (filename) => {
+      const lower = filename.toLowerCase();
+      if (lower.includes("license") || lower.includes("dl")) return "drivers_license";
+      if (lower.includes("w4") || lower.includes("w-4")) return "w4";
+      if (lower.includes("passport")) return "passport";
+      return "other";
+    };
+    const handleDrop = (e) => {
+      e.preventDefault();
+      setDragOver(false);
+      const file = e.dataTransfer.files[0];
+      if (file) uploadFile(file);
+    };
+    const handleFileSelect = (e) => {
+      const file = e.target.files[0];
+      if (file) uploadFile(file);
+    };
+    return /* @__PURE__ */ import_react.default.createElement("div", { className: "px-4 py-3" }, /* @__PURE__ */ import_react.default.createElement(
+      "div",
+      {
+        onDragOver: (e) => {
+          e.preventDefault();
+          setDragOver(true);
+        },
+        onDragLeave: () => setDragOver(false),
+        onDrop: handleDrop,
+        className: `rounded-2xl border-2 border-dashed p-6 text-center transition-colors ${dragOver ? "border-[#6D46DE] bg-[#6D46DE]/5" : "border-[#E0E0E0] bg-[rgba(0,0,0,0.01)]"}`
+      },
+      /* @__PURE__ */ import_react.default.createElement("p", { className: "text-sm font-light text-[#555555]" }, uploading ? `Uploading... ${progress}%` : "Drag and drop a document here, or"),
+      uploading && /* @__PURE__ */ import_react.default.createElement("div", { className: "mt-2 h-2 w-full rounded-full bg-[#E0E0E0]" }, /* @__PURE__ */ import_react.default.createElement("div", { className: "h-2 rounded-full bg-[#6D46DE] transition-all", style: { width: `${progress}%` } })),
+      !uploading && /* @__PURE__ */ import_react.default.createElement(
+        "button",
+        {
+          type: "button",
+          onClick: () => fileInputRef.current?.click(),
+          className: "mt-2 rounded-pill bg-[#6D46DE] px-4 py-1.5 text-sm font-light text-white hover:opacity-90"
+        },
+        "Choose file"
+      ),
+      /* @__PURE__ */ import_react.default.createElement(
+        "input",
+        {
+          ref: fileInputRef,
+          type: "file",
+          accept: ".png,.jpg,.jpeg,.pdf",
+          onChange: handleFileSelect,
+          className: "hidden"
+        }
+      ),
+      /* @__PURE__ */ import_react.default.createElement("p", { className: "mt-2 text-xs font-light text-[#777777]" }, "PNG, JPEG, or PDF \u2014 max 10 MB")
+    ), error && /* @__PURE__ */ import_react.default.createElement("p", { className: "mt-2 text-sm font-light text-[#B3014D]" }, error), success && /* @__PURE__ */ import_react.default.createElement("p", { className: "mt-2 text-sm font-light text-[#00C14E]" }, success));
+  }
+
   // app/javascript/components/ChatApp.jsx
   function ChatApp() {
     const rootEl = document.getElementById("chat-root");
     const sessionId = rootEl?.getAttribute("data-session-id");
     const initialMessagesJson = rootEl?.getAttribute("data-initial-messages") || "[]";
-    const [messages, setMessages] = (0, import_react.useState)(() => {
+    const isCompleted = rootEl?.getAttribute("data-completed") === "true";
+    const isResuming = rootEl?.getAttribute("data-resuming") === "true";
+    const initialPhone = rootEl?.getAttribute("data-phone-number") || "";
+    const initialSmsOptIn = rootEl?.getAttribute("data-sms-opt-in") === "true";
+    const [messages, setMessages] = (0, import_react2.useState)(() => {
       try {
         return JSON.parse(initialMessagesJson);
       } catch {
         return [];
       }
     });
-    const [streamingContent, setStreamingContent] = (0, import_react.useState)("");
-    const [inputValue, setInputValue] = (0, import_react.useState)("");
-    const [isStreaming, setIsStreaming] = (0, import_react.useState)(false);
-    const [cable, setCable] = (0, import_react.useState)(null);
-    const [sub, setSub] = (0, import_react.useState)(null);
-    const messagesEndRef = (0, import_react.useRef)(null);
-    const subscriptionRef = (0, import_react.useRef)(null);
-    (0, import_react.useEffect)(() => {
+    const [streamingContent, setStreamingContent] = (0, import_react2.useState)("");
+    const [inputValue, setInputValue] = (0, import_react2.useState)("");
+    const [isStreaming, setIsStreaming] = (0, import_react2.useState)(false);
+    const [currentStep, setCurrentStep] = (0, import_react2.useState)(rootEl?.getAttribute("data-current-step") || "");
+    const [progress, setProgress] = (0, import_react2.useState)(parseInt(rootEl?.getAttribute("data-progress") || "0", 10));
+    const [smsPhone, setSmsPhone] = (0, import_react2.useState)(initialPhone);
+    const [smsOptIn, setSmsOptIn] = (0, import_react2.useState)(initialSmsOptIn);
+    const [smsReady, setSmsReady] = (0, import_react2.useState)(
+      Boolean(initialPhone && initialSmsOptIn)
+    );
+    const [smsSaving, setSmsSaving] = (0, import_react2.useState)(false);
+    const [smsHandoffStatus, setSmsHandoffStatus] = (0, import_react2.useState)(null);
+    const messagesEndRef = (0, import_react2.useRef)(null);
+    const subscriptionRef = (0, import_react2.useRef)(null);
+    const csrfToken = () => document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "";
+    const saveSmsSettings = async () => {
+      if (!sessionId) return;
+      setSmsSaving(true);
+      setSmsHandoffStatus(null);
+      try {
+        const res = await fetch(`/api/onboarding_sessions/${sessionId}/sms_settings`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            "X-CSRF-Token": csrfToken()
+          },
+          credentials: "same-origin",
+          body: JSON.stringify({
+            phone_number: smsPhone.trim(),
+            sms_opt_in: smsOptIn
+          })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          setSmsHandoffStatus(data.errors?.join?.(" ") || data.error || "Could not save SMS settings.");
+          return;
+        }
+        setSmsReady(Boolean(data.sms_ready));
+        if (data.phone_number) setSmsPhone(data.phone_number);
+        setSmsOptIn(Boolean(data.sms_opt_in));
+      } catch (e) {
+        setSmsHandoffStatus("Network error saving SMS settings.");
+      } finally {
+        setSmsSaving(false);
+      }
+    };
+    const sendSmsHandoff = async () => {
+      if (!sessionId) return;
+      setSmsSaving(true);
+      setSmsHandoffStatus(null);
+      try {
+        const res = await fetch(`/api/onboarding_sessions/${sessionId}/sms_handoff`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            "X-CSRF-Token": csrfToken()
+          },
+          credentials: "same-origin",
+          body: JSON.stringify({})
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          setSmsHandoffStatus(data.error || "Could not send SMS.");
+          return;
+        }
+        setSmsHandoffStatus("Text sent. Check your phone to continue onboarding.");
+      } catch (e) {
+        setSmsHandoffStatus("Network error sending SMS.");
+      } finally {
+        setSmsSaving(false);
+      }
+    };
+    (0, import_react2.useEffect)(() => {
       if (!sessionId) return;
       const url = document.querySelector('meta[name="action-cable-url"]')?.content || "/cable";
       const consumer = createConsumer(url);
-      setCable(consumer);
-      const sub2 = consumer.subscriptions.create(
+      const sub = consumer.subscriptions.create(
         { channel: "OnboardingChatChannel", session_id: sessionId },
         {
           received(data) {
@@ -29506,72 +29692,151 @@
               setMessages((prev) => [...prev, { id: data.id, role: "assistant", content: data.content || "" }]);
               setStreamingContent("");
               setIsStreaming(false);
+              if (data.current_step) setCurrentStep(data.current_step);
+              if (data.progress_percent != null) {
+                setProgress(data.progress_percent);
+                const bar = document.querySelector("[data-progress-bar]");
+                if (bar) bar.style.width = `${data.progress_percent}%`;
+                const label = document.querySelector("[data-progress-label]");
+                if (label) label.textContent = `${data.progress_percent}%`;
+                const stepLabel = document.querySelector("[data-step-label]");
+                if (stepLabel) stepLabel.textContent = `Step: ${(data.current_step || "").replace(/_/g, " ")}`;
+              }
             } else if (data.type === "error") {
-              setMessages((prev) => [...prev, { id: null, role: "assistant", content: data.message || "Something went wrong." }]);
+              setMessages((prev) => [...prev, {
+                id: null,
+                role: "error",
+                content: data.message || "Something went wrong.",
+                retryable: data.retryable !== false
+              }]);
               setStreamingContent("");
               setIsStreaming(false);
             }
           }
         }
       );
-      subscriptionRef.current = sub2;
-      setSub(sub2);
+      subscriptionRef.current = sub;
       return () => {
-        sub2.unsubscribe();
+        sub.unsubscribe();
         consumer.disconnect();
       };
     }, [sessionId]);
-    (0, import_react.useEffect)(() => {
+    (0, import_react2.useEffect)(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages, streamingContent]);
+    const handleRetry = () => {
+      const lastUserMsg = [...messages].reverse().find((m) => m.role === "user");
+      if (!lastUserMsg || !subscriptionRef.current || isStreaming) return;
+      setMessages((prev) => prev.filter((m) => m.role !== "error"));
+      subscriptionRef.current.perform("send_message", { body: lastUserMsg.content });
+    };
     const handleSubmit = (e) => {
       e.preventDefault();
       const body = inputValue.trim();
-      if (!body || !subscriptionRef.current || isStreaming) return;
+      if (!body || !subscriptionRef.current || isStreaming || isCompleted) return;
       setInputValue("");
       setMessages((prev) => [...prev, { id: null, role: "user", content: body }]);
       subscriptionRef.current.perform("send_message", { body });
     };
     if (!sessionId) {
-      return /* @__PURE__ */ import_react.default.createElement("div", { className: "flex h-full items-center justify-center text-[#777777] font-light" }, "Missing session. Refresh the page.");
+      return /* @__PURE__ */ import_react2.default.createElement("div", { className: "flex h-full items-center justify-center text-[#777777] font-light" }, "Missing session. Refresh the page.");
     }
-    return /* @__PURE__ */ import_react.default.createElement("div", { className: "flex h-full min-h-0 min-w-0 flex-col bg-white sm:min-h-[400px]" }, /* @__PURE__ */ import_react.default.createElement("div", { className: "flex-1 overflow-y-auto p-4 space-y-4" }, messages.length === 0 && !streamingContent && /* @__PURE__ */ import_react.default.createElement("p", { className: "text-center text-[#777777] text-sm font-light pt-8" }, "Send a message to start your onboarding."), messages.map((m) => /* @__PURE__ */ import_react.default.createElement(
+    const emptyState = messages.length === 0 && !streamingContent;
+    return /* @__PURE__ */ import_react2.default.createElement("div", { className: "flex h-full min-h-0 min-w-0 flex-col bg-white" }, /* @__PURE__ */ import_react2.default.createElement("div", { className: "flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4" }, emptyState && !isResuming && /* @__PURE__ */ import_react2.default.createElement("p", { className: "text-center text-[#777777] text-sm font-light pt-8" }, "Send a message to start your onboarding."), emptyState && isResuming && /* @__PURE__ */ import_react2.default.createElement("p", { className: "text-center text-[#777777] text-sm font-light pt-8" }, "Welcome back! Send a message to continue."), isCompleted && emptyState && /* @__PURE__ */ import_react2.default.createElement("div", { className: "text-center pt-8" }, /* @__PURE__ */ import_react2.default.createElement("p", { className: "text-[#00C14E] text-lg font-medium" }, "Onboarding Complete"), /* @__PURE__ */ import_react2.default.createElement("p", { className: "text-[#777777] text-sm font-light mt-2" }, "You've finished all onboarding steps. Contact HR if you need to update anything.")), messages.map((m) => /* @__PURE__ */ import_react2.default.createElement(
       "div",
       {
         key: m.id ?? `msg-${m.role}-${messages.indexOf(m)}`,
         className: `flex ${m.role === "user" ? "justify-end" : "justify-start"}`
       },
-      /* @__PURE__ */ import_react.default.createElement(
+      m.role === "error" ? /* @__PURE__ */ import_react2.default.createElement("div", { className: "max-w-[85%] rounded-2xl border border-[#B3014D]/20 bg-[#B3014D]/5 px-4 py-2 text-sm font-light text-[#B3014D]" }, /* @__PURE__ */ import_react2.default.createElement("div", { className: "whitespace-pre-wrap break-words" }, m.content), m.retryable && /* @__PURE__ */ import_react2.default.createElement(
+        "button",
+        {
+          onClick: handleRetry,
+          className: "mt-2 text-xs font-medium text-[#6D46DE] hover:opacity-80 underline"
+        },
+        "Try again"
+      )) : /* @__PURE__ */ import_react2.default.createElement(
         "div",
         {
           className: `max-w-[85%] rounded-2xl px-4 py-2 text-sm font-light ${m.role === "user" ? "bg-[#6D46DE] text-white" : "bg-[rgba(0,0,0,0.03)] text-[#333333]"}`
         },
-        /* @__PURE__ */ import_react.default.createElement("div", { className: "whitespace-pre-wrap break-words" }, m.content)
+        /* @__PURE__ */ import_react2.default.createElement("div", { className: "whitespace-pre-wrap break-words" }, m.content)
       )
-    )), streamingContent && /* @__PURE__ */ import_react.default.createElement("div", { className: "flex justify-start" }, /* @__PURE__ */ import_react.default.createElement("div", { className: "max-w-[85%] rounded-2xl bg-[rgba(0,0,0,0.03)] px-4 py-2 text-sm font-light text-[#333333]" }, /* @__PURE__ */ import_react.default.createElement("div", { className: "whitespace-pre-wrap break-words" }, streamingContent))), isStreaming && !streamingContent && /* @__PURE__ */ import_react.default.createElement("div", { className: "flex justify-start" }, /* @__PURE__ */ import_react.default.createElement("div", { className: "rounded-2xl bg-[rgba(0,0,0,0.03)] px-4 py-2 text-sm font-light text-[#777777]" }, /* @__PURE__ */ import_react.default.createElement("span", { className: "animate-pulse" }, "..."))), /* @__PURE__ */ import_react.default.createElement("div", { ref: messagesEndRef })), /* @__PURE__ */ import_react.default.createElement("form", { onSubmit: handleSubmit, className: "border-t border-[#E0E0E0] p-3" }, /* @__PURE__ */ import_react.default.createElement("div", { className: "flex gap-2" }, /* @__PURE__ */ import_react.default.createElement(
+    )), streamingContent && /* @__PURE__ */ import_react2.default.createElement("div", { className: "flex justify-start" }, /* @__PURE__ */ import_react2.default.createElement("div", { className: "max-w-[85%] rounded-2xl bg-[rgba(0,0,0,0.03)] px-4 py-2 text-sm font-light text-[#333333]" }, /* @__PURE__ */ import_react2.default.createElement("div", { className: "whitespace-pre-wrap break-words" }, streamingContent))), isStreaming && !streamingContent && /* @__PURE__ */ import_react2.default.createElement("div", { className: "flex justify-start" }, /* @__PURE__ */ import_react2.default.createElement("div", { className: "rounded-2xl bg-[rgba(0,0,0,0.03)] px-4 py-2 text-sm font-light text-[#777777]" }, /* @__PURE__ */ import_react2.default.createElement("span", { className: "animate-pulse" }, "..."))), /* @__PURE__ */ import_react2.default.createElement("div", { ref: messagesEndRef })), currentStep === "document_upload" && !isCompleted && /* @__PURE__ */ import_react2.default.createElement(
+      FileUpload,
+      {
+        sessionId,
+        onUploadComplete: (doc) => {
+          setMessages((prev) => [...prev, {
+            id: null,
+            role: "assistant",
+            content: `Document "${doc.document_type}" uploaded successfully. You can upload more or send a message to continue.`
+          }]);
+        }
+      }
+    ), !isCompleted && /* @__PURE__ */ import_react2.default.createElement("div", { className: "border-t border-[#E0E0E0] px-2 sm:px-3 pt-3 pb-2 space-y-2" }, /* @__PURE__ */ import_react2.default.createElement("p", { className: "text-xs font-light text-[#777777]" }, "Continue on your phone (optional): save your number and opt in to get a text to resume onboarding if you step away."), /* @__PURE__ */ import_react2.default.createElement("div", { className: "flex flex-col sm:flex-row gap-2 sm:items-center" }, /* @__PURE__ */ import_react2.default.createElement(
+      "input",
+      {
+        type: "tel",
+        inputMode: "tel",
+        autoComplete: "tel",
+        placeholder: "+1 mobile number",
+        value: smsPhone,
+        onChange: (e) => setSmsPhone(e.target.value),
+        disabled: smsSaving,
+        className: "flex-1 min-w-0 rounded-pill border border-[#E0E0E0] px-3 py-2 text-sm font-light focus:border-[#6D46DE] focus:outline-none focus:ring-1 focus:ring-[#6D46DE]"
+      }
+    ), /* @__PURE__ */ import_react2.default.createElement("label", { className: "flex items-center gap-2 text-xs font-light text-[#333333] shrink-0" }, /* @__PURE__ */ import_react2.default.createElement(
+      "input",
+      {
+        type: "checkbox",
+        checked: smsOptIn,
+        onChange: (e) => setSmsOptIn(e.target.checked),
+        disabled: smsSaving,
+        className: "rounded border-[#E0E0E0] text-[#6D46DE] focus:ring-[#6D46DE]"
+      }
+    ), "Text me to continue onboarding"), /* @__PURE__ */ import_react2.default.createElement(
+      "button",
+      {
+        type: "button",
+        onClick: saveSmsSettings,
+        disabled: smsSaving,
+        className: "rounded-pill border border-[#6D46DE] px-3 py-2 text-xs font-light text-[#6D46DE] hover:bg-[#6D46DE]/5 disabled:opacity-50"
+      },
+      "Save"
+    )), smsReady && /* @__PURE__ */ import_react2.default.createElement("div", { className: "flex flex-col sm:flex-row gap-2 sm:items-center" }, /* @__PURE__ */ import_react2.default.createElement(
+      "button",
+      {
+        type: "button",
+        onClick: sendSmsHandoff,
+        disabled: smsSaving,
+        className: "rounded-pill bg-[#00C14E] px-4 py-2 text-xs font-light text-white hover:opacity-90 disabled:opacity-50"
+      },
+      "Text me a link to continue"
+    ), /* @__PURE__ */ import_react2.default.createElement("span", { className: "text-xs font-light text-[#777777]" }, "You can reply to that text to pick up where you left off.")), smsHandoffStatus && /* @__PURE__ */ import_react2.default.createElement("p", { className: "text-xs font-light text-[#333333]" }, smsHandoffStatus)), !isCompleted && /* @__PURE__ */ import_react2.default.createElement("form", { onSubmit: handleSubmit, className: "border-t border-[#E0E0E0] p-2 sm:p-3" }, /* @__PURE__ */ import_react2.default.createElement("div", { className: "flex gap-2" }, /* @__PURE__ */ import_react2.default.createElement(
       "input",
       {
         type: "text",
         value: inputValue,
         onChange: (e) => setInputValue(e.target.value),
         placeholder: "Type a message...",
-        className: "flex-1 rounded-pill border border-[#E0E0E0] px-4 py-2 text-sm font-light focus:border-[#6D46DE] focus:outline-none focus:ring-1 focus:ring-[#6D46DE]",
+        className: "flex-1 min-w-0 rounded-pill border border-[#E0E0E0] px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm font-light focus:border-[#6D46DE] focus:outline-none focus:ring-1 focus:ring-[#6D46DE]",
         disabled: isStreaming,
         autoComplete: "off"
       }
-    ), /* @__PURE__ */ import_react.default.createElement(
+    ), /* @__PURE__ */ import_react2.default.createElement(
       "button",
       {
         type: "submit",
         disabled: isStreaming || !inputValue.trim(),
-        className: "rounded-pill bg-[#6D46DE] px-5 py-2 text-sm font-light text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+        className: "rounded-pill bg-[#6D46DE] px-4 sm:px-5 py-2.5 sm:py-2 text-base sm:text-sm font-light text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
       },
       "Send"
     ))));
   }
   var container = document.getElementById("chat-root");
   if (container) {
-    (0, import_client.createRoot)(container).render(/* @__PURE__ */ import_react.default.createElement(ChatApp, null));
+    (0, import_client.createRoot)(container).render(/* @__PURE__ */ import_react2.default.createElement(ChatApp, null));
   }
 })();
 /*! Bundled license information:

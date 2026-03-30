@@ -49,6 +49,14 @@
 | **P6-003-primer.md** | GitHub repository documentation |
 | **P6-004-primer.md** | AI cost analysis report |
 | **P6-005-primer.md** | Social post & launch |
+| | |
+| **P7-001-primer.md** | Live web→SMS continuation foundation (phone capture + consent + resume) |
+| **P7-002-primer.md** | Messaging adapter + inbound webhook (Twilio-first, OpenClaw-ready) |
+| **P7-003-primer.md** | Cross-channel orchestration + conflict handling |
+| **P7-004-primer.md** | OpenClaw gateway integration (agent, channels, hooks → Rails) |
+| **P7-005-primer.md** | Proactive onboarding + heartbeat + hardening |
+| **P7-006-primer.md** | Admin dashboard: user interactions, analytics, journey visualization |
+| **P7-007-primer.md** | Render & production config for omnichannel (env vars, webhooks, `render.yaml`) |
 
 Before coding any ticket:
 
@@ -75,6 +83,7 @@ Before coding any ticket:
 | **P4** | Emotional support: sentiment, adaptive behavior, escalation |
 | **P5** | Evals, tracing dashboard, cost tracking, admin analytics |
 | **P6** | Deploy, demo video, repo docs, cost report, launch |
+| **P7** | Omnichannel continuity: OpenClaw gateway, proactive onboarding, admin analytics, Render ops |
 
 ## Dependency chain
 
@@ -95,7 +104,10 @@ P0-001 (scaffold) ✅
 ├── P3-001 → P3-002 → P3-003 → P3-004 (scheduling)
 ├── P4-001 → P4-002 → P4-003 → P4-004 (emotional support)
 ├── P5-001 → P5-002 → P5-003 → P5-004 → P5-005 (evals & ops)
-└── P6-001 → P6-002 → P6-003 → P6-004 → P6-005 (launch)
+├── P6-001 → P6-002 → P6-003 → P6-004 → P6-005 (launch)
+└── P7-001 → P7-002 → P7-003 → P7-004 → P7-005 (OpenClaw omnichannel)
+    ├── P7-006 (admin analytics — depends on P5-004 + P7-003)
+    └── P7-007 (Render env + webhooks + render.yaml — depends on P6-001; Twilio after P7-002, OpenClaw after P7-004)
 ```
 
 **P0-001** is scaffolded under **`backend/`** — run `bundle install` and `db:migrate` there.
