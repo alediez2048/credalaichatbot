@@ -18,6 +18,7 @@ Product requirements, style guides, and feature design specs.
 | [design/PRD.md](design/PRD.md) | Product Requirements Document — full spec |
 | [design/credal-style-guidelines.md](design/credal-style-guidelines.md) | Credal brand: colors, typography, UI patterns |
 | [design/nclusion-design-style-guide.md](design/nclusion-design-style-guide.md) | Nclusion design reference (cross-project) |
+| [design/P7-openclaw-architecture-impact.md](design/P7-openclaw-architecture-impact.md) | Architecture impact: OpenClaw as omnichannel agent gateway |
 | [superpowers/specs/](superpowers/specs/) | Feature design specs (brainstormed + reviewed) |
 | [superpowers/plans/](superpowers/plans/) | Implementation plans |
 
@@ -29,7 +30,7 @@ Phased ticket system and development history.
 | [tickets/README.md](tickets/README.md) | Ticket index with dependency tree |
 | [tickets/DEVLOG.md](tickets/DEVLOG.md) | What shipped per ticket, decisions, follow-ups |
 | [tickets/PREFLIGHT-CHECKLIST.md](tickets/PREFLIGHT-CHECKLIST.md) | Pre-launch verification checklist |
-| `tickets/P?-???-primer.md` | 35 ticket primers (P0-001 through P6-005) |
+| `tickets/P?-???-primer.md` | 42 ticket primers (P0-001 through P7-007) |
 
 ### Ticket Phases
 
@@ -40,8 +41,16 @@ Phased ticket system and development history.
 | **P2** | Document Upload & OCR | P2-001 — P2-005 | Done |
 | **P3** | Scheduling & Booking | P3-001 — P3-004 | Done |
 | **P4** | Emotional Support | P4-001 — P4-004 | Done |
-| **P5** | Evals & Ops | P5-001 — P5-005 | In progress |
-| **P6** | Launch | P6-001 — P6-005 | Pending |
+| **P5** | Evals & Ops | P5-001 — P5-005 | Done |
+| **P6** | Launch | P6-001 — P6-005 | Done |
+| **P7** | Omnichannel Continuity (OpenClaw gateway + admin + Render ops) | P7-001 — P7-007 | In progress (P7-001–003 done) |
+
+## Guides
+Step-by-step integration and configuration guides.
+
+| File | Description |
+|------|-------------|
+| [guides/openclaw-integration.md](guides/openclaw-integration.md) | OpenClaw gateway setup: install, channels, hooks → Rails, testing, troubleshooting |
 
 ## Ops & Infrastructure
 Production deployment, CI/CD, and observability.

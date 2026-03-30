@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_03_26_222751) do
+ActiveRecord::Schema[7.2].define(version: 2026_03_30_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -146,7 +146,18 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_26_222751) do
     t.jsonb "metadata", default: {}
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "phone_number"
+    t.boolean "sms_opt_in", default: false, null: false
+    t.string "last_channel", default: "web", null: false
+    t.datetime "last_interaction_at"
+    t.string "sms_thread_id"
+    t.string "channel_type"
+    t.string "channel_user_id"
     t.index ["anonymous_token"], name: "index_onboarding_sessions_on_anonymous_token", unique: true, where: "(anonymous_token IS NOT NULL)"
+    t.index ["channel_type", "channel_user_id"], name: "index_onboarding_sessions_on_channel_identity", unique: true, where: "((channel_type IS NOT NULL) AND (channel_user_id IS NOT NULL))"
+    t.index ["phone_number", "sms_opt_in"], name: "index_onboarding_sessions_on_phone_number_and_sms_opt_in"
+    t.index ["phone_number"], name: "index_onboarding_sessions_on_phone_number"
+    t.index ["sms_opt_in"], name: "index_onboarding_sessions_on_sms_opt_in"
     t.index ["user_id"], name: "index_onboarding_sessions_on_user_id"
   end
 
@@ -161,6 +172,23 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_26_222751) do
     t.datetime "updated_at", null: false
     t.index ["onboarding_session_id", "created_at"], name: "idx_on_onboarding_session_id_created_at_8306bebe80"
     t.index ["onboarding_session_id"], name: "index_sentiment_readings_on_onboarding_session_id"
+  end
+
+  create_table "sms_events", force: :cascade do |t|
+    t.bigint "onboarding_session_id"
+    t.string "provider", null: false
+    t.string "direction", null: false
+    t.string "external_id"
+    t.string "phone_number"
+    t.text "body"
+    t.string "status", default: "received", null: false
+    t.text "error_message"
+    t.jsonb "metadata", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["onboarding_session_id"], name: "index_sms_events_on_onboarding_session_id"
+    t.index ["phone_number", "created_at"], name: "index_sms_events_on_phone_number_and_created_at"
+    t.index ["provider", "direction", "external_id"], name: "idx_sms_events_provider_direction_external_id", unique: true, where: "(external_id IS NOT NULL)"
   end
 
   create_table "users", force: :cascade do |t|
@@ -188,4 +216,5 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_26_222751) do
   add_foreign_key "messages", "onboarding_sessions"
   add_foreign_key "onboarding_sessions", "users"
   add_foreign_key "sentiment_readings", "onboarding_sessions"
+  add_foreign_key "sms_events", "onboarding_sessions"
 end

@@ -1,5 +1,5 @@
-<div class="mx-auto max-w-3xl px-4 py-6 sm:px-6" style="height: calc(100vh - 72px);">
-  <div class="h-full flex flex-col rounded-2xl border border-[#E0E0E0] bg-white shadow-credal">
+<div class="mx-auto max-w-3xl px-2 py-2 sm:px-6 sm:py-6" style="height: calc(100vh - 72px); height: calc(100dvh - 72px);">
+  <div class="h-full flex flex-col rounded-none sm:rounded-2xl border-0 sm:border border-[#E0E0E0] bg-white sm:shadow-credal">
     <%# Progress bar %>
     <div class="px-4 pt-4 pb-2">
       <div class="flex items-center justify-between mb-1">
@@ -28,7 +28,9 @@
          data-current-step="<%= @onboarding_session.current_step %>"
          data-progress="<%= @onboarding_session.progress_percent || 0 %>"
          data-resuming="<%= @resuming %>"
-         data-completed="<%= @completed %>">
+         data-completed="<%= @completed %>"
+         data-phone-number="<%= @onboarding_session.phone_number.to_s %>"
+         data-sms-opt-in="<%= @onboarding_session.sms_opt_in %>">
     </div>
   </div>
 </div>
