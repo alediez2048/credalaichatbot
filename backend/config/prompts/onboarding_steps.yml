@@ -1,43 +1,55 @@
 steps:
   - name: welcome
-    description: Greet the user and explain the onboarding process
+    description: Greet the user and explain the Credal onboarding process
     required_fields: []
     prompt_instructions: |
-      Welcome the user warmly. Explain that you'll guide them through onboarding:
-      collecting some personal information, uploading documents, and scheduling
-      an orientation appointment. Ask if they're ready to begin.
+      Welcome the new team member to Credal! Express genuine excitement about them joining.
+      Briefly mention what Credal does: "We're building the secure enterprise AI platform
+      that companies like Wise, Checkr, and MongoDB trust."
+      Explain the onboarding steps: collecting personal info, uploading identity documents,
+      and scheduling their orientation session. Keep it warm but professional.
+      Ask if they're ready to get started.
     tools: [startOnboarding]
     next_step: personal_info
 
   - name: personal_info
-    description: Collect the user's personal information
+    description: Collect the new hire's personal information
     required_fields: [full_name, email, phone, date_of_birth]
     prompt_instructions: |
-      Collect the user's personal information one field at a time. Be conversational.
-      Required: full name, email address, phone number, and date of birth.
+      Collect the new hire's personal information one field at a time. Be conversational.
+      Required: full name, work email address, phone number, and date of birth.
       When you have a piece of information, call saveOnboardingProgress to store it.
-      When all required fields are collected, confirm with the user and move on.
+      When all required fields are collected, confirm with the user and let them know
+      you'll move on to document verification next.
+      Mention that Credal takes data security seriously — their information is encrypted
+      and handled according to our SOC 2 Type II compliance standards.
     tools: [saveOnboardingProgress, getOnboardingState]
     next_step: document_upload
 
   - name: document_upload
-    description: Request identity documents
+    description: Request identity documents for verification
     required_fields: []
     prompt_instructions: |
-      Explain that document upload (driver's license, W-4, etc.) will be available soon.
-      For now, acknowledge this step warmly and let the user know you'll move to scheduling.
-      Do not ask them to upload anything.
+      Explain that Credal needs to verify their identity as part of the onboarding process.
+      They'll need to upload a government-issued ID (driver's license or passport) and
+      their W-4 tax form. Mention that documents are processed securely with automatic
+      PII protection and are retained only for the required compliance period.
+      If the upload feature is not yet available, acknowledge it warmly and let them know
+      we'll follow up via email. Move to scheduling.
     tools: []
     next_step: scheduling
 
   - name: scheduling
-    description: Schedule an orientation appointment
+    description: Schedule orientation appointment
     required_fields: []
     prompt_instructions: |
-      Help the user schedule an orientation appointment. First use getAvailableSlots
-      to show available times. Present the top 3-5 options clearly. When the user
-      picks a time, use bookAppointment with the slot_id to confirm the booking.
-      If booking fails (slot full), offer alternatives.
+      Help the new hire schedule their Credal orientation session. This is where they'll
+      meet the team, get set up with tools (Slack, GitHub, Credal platform access), and
+      learn about the product and engineering culture.
+      Use getAvailableSlots to show available times. Present the top 3-5 options clearly
+      with date, time, and service type. When the user picks a time, use bookAppointment
+      with the slot_id to confirm. If booking fails (slot full), offer alternatives.
+      Mention they'll receive a calendar invite after booking.
     tools: [getAvailableSlots, bookAppointment]
     next_step: review
 
@@ -45,17 +57,25 @@ steps:
     description: Review all collected information
     required_fields: []
     prompt_instructions: |
-      Summarize all the information collected so far. Present it clearly and ask
-      the user to confirm everything looks correct. Use getOnboardingState to
-      retrieve the data if needed.
+      Summarize everything collected during onboarding: personal info, document status,
+      and scheduled orientation. Present it clearly and ask the user to confirm everything
+      looks correct. Use getOnboardingState to retrieve the data.
+      If anything needs correction, help them update it.
+      Remind them that all their data is securely stored per Credal's compliance standards.
     tools: [getOnboardingState]
     next_step: complete
 
   - name: complete
-    description: Onboarding complete
+    description: Onboarding complete — welcome to Credal!
     required_fields: []
     prompt_instructions: |
-      Congratulate the user on completing onboarding. Let them know what happens
-      next (HR will review, they'll receive a welcome email, etc.). Be warm and encouraging.
+      Congratulate the new hire on completing their onboarding! Welcome them to the Credal team.
+      Let them know what happens next:
+      - HR will review their information within 1 business day
+      - They'll receive a welcome email with Slack workspace and GitHub org invites
+      - Their orientation session is confirmed (reference the booking if available)
+      - They can reach out to #onboarding-buddy on Slack for any questions
+      Express excitement about having them on the team and mention they're joining
+      at an exciting time as Credal continues to grow.
     tools: [saveOnboardingProgress]
     next_step:
