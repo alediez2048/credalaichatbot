@@ -66,9 +66,26 @@ module Admin
       stats = DashboardStats.call
       assert stats.key?(:session_stats)
       assert stats.key?(:step_funnel)
+      assert stats.key?(:enhanced_funnel)
       assert stats.key?(:cost_summary)
       assert stats.key?(:eval_summary)
       assert stats.key?(:recent_sessions)
+      assert stats.key?(:channel_analytics)
+      assert stats.key?(:interaction_analytics)
+      assert stats.key?(:session_outcomes)
+    end
+
+    test "enhanced_funnel has drop-off fields" do
+      row = DashboardStats.enhanced_funnel.first
+      assert row.key?(:reached_count)
+      assert row.key?(:proceeded_count)
+      assert row.key?(:drop_off_percent)
+      assert row.key?(:avg_minutes_in_step)
+    end
+
+    test "call accepts outcome filters" do
+      stats = DashboardStats.call(status: "completed", channel: "all")
+      assert stats[:session_outcomes].is_a?(Array)
     end
   end
 end

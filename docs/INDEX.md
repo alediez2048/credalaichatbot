@@ -60,3 +60,4 @@ Production deployment, CI/CD, and observability.
 | [ops/production.md](ops/production.md) | Production deployment guide |
 | [ops/ci-eval.md](ops/ci-eval.md) | CI eval pipeline configuration |
 | [ops/langsmith-dashboard.md](ops/langsmith-dashboard.md) | LangSmith tracing dashboard setup |
+| [ops/openclaw-runbook.md](ops/openclaw-runbook.md) | OpenClaw gateway ops: start/stop, channels, nudges, diagnostics |

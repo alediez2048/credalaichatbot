@@ -48,5 +48,20 @@ module Admin
       assert_response :success
       assert_select "h2", /Recent Sessions/
     end
+
+    test "dashboard renders funnel and outcomes" do
+      sign_in @admin
+      get admin_dashboard_path
+      assert_response :success
+      assert_select "h2", /Onboarding funnel/
+      assert_select "h2", /Session outcomes/
+      assert_select "h2", /Channel analytics/
+    end
+
+    test "dashboard accepts filter params" do
+      sign_in @admin
+      get admin_dashboard_path, params: { status: "active", channel: "web_only" }
+      assert_response :success
+    end
   end
 end

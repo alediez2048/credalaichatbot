@@ -64,13 +64,18 @@ module Onboarding
             resume_from_sms: resume_from_sms,
             resume_step: step_at_turn_start
           )
+          assistant_meta = {
+            channel: @channel.to_s,
+            orchestrator_raw_chars: raw.length
+          }
+          if result[:step_changed]
+            assistant_meta[:step_changed] = true
+            assistant_meta[:step_after] = @session.current_step
+          end
           assistant = @session.messages.create!(
             role: "assistant",
             content: text,
-            metadata: {
-              channel: @channel.to_s,
-              orchestrator_raw_chars: raw.length
-            }
+            metadata: assistant_meta
           )
           touch_session_channel!
           {

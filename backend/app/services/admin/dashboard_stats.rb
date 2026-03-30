@@ -4,13 +4,23 @@ module Admin
   class DashboardStats
     ONBOARDING_STEPS = %w[welcome personal_info document_upload scheduling review complete].freeze
 
-    def self.call
+    def self.call(status: nil, channel: nil, date_from: nil, date_to: nil)
+      outcome_filters = {
+        status: status.presence || "all",
+        channel: channel.presence || "all",
+        date_from: parse_date(date_from),
+        date_to: parse_date(date_to)
+      }
       {
         session_stats: session_stats,
         step_funnel: step_funnel,
+        enhanced_funnel: enhanced_funnel,
         cost_summary: cost_summary,
         eval_summary: eval_summary,
-        recent_sessions: recent_sessions
+        recent_sessions: recent_sessions,
+        channel_analytics: ChannelAnalytics.call,
+        interaction_analytics: InteractionAnalytics.call,
+        session_outcomes: SessionOutcomes.call(**outcome_filters)
       }
     end
 
@@ -36,6 +46,59 @@ module Admin
         { step: step, count: count, percent: pct }
       end
     end
+
+    # Progression funnel: reached step N vs proceeded past N (drop-off), plus avg time in step from message markers.
+    def self.enhanced_funnel
+      sessions = OnboardingSession.all.to_a
+      ONBOARDING_STEPS.each_with_index.map do |_step_name, i|
+        reached = sessions.count { |s| step_index(s.current_step) >= i }
+        proceeded = sessions.count { |s| step_index(s.current_step) > i }
+        drop_off = reached.positive? ? ((reached - proceeded) * 100.0 / reached).round(1) : 0.0
+        retention = reached.positive? ? (proceeded * 100.0 / reached).round(1) : 0.0
+        avg_mins = avg_minutes_for_step(ONBOARDING_STEPS[i])
+        {
+          step: ONBOARDING_STEPS[i],
+          reached_count: reached,
+          proceeded_count: proceeded,
+          retention_percent: retention,
+          drop_off_percent: drop_off,
+          avg_minutes_in_step: avg_mins
+        }
+      end
+    end
+
+    def self.step_index(step_name)
+      ONBOARDING_STEPS.index(step_name) || -1
+    end
+
+    def self.avg_minutes_for_step(step_name)
+      all_mins = []
+      OnboardingSession.find_each do |sess|
+        markers = sess.messages.where(role: "assistant").order(:created_at).select { |m| m.metadata["step_after"].present? }
+        prev_at = sess.created_at
+        prev_step = ONBOARDING_STEPS.first
+        markers.each do |m|
+          new_step = m.metadata["step_after"].to_s
+          mins = (m.created_at - prev_at) / 60.0
+          all_mins << mins if prev_step == step_name
+          prev_at = m.created_at
+          prev_step = ONBOARDING_STEPS.include?(new_step) ? new_step : prev_step
+        end
+      end
+      return nil if all_mins.empty?
+
+      (all_mins.sum / all_mins.size).round(1)
+    end
+    private_class_method :avg_minutes_for_step
+
+    def self.parse_date(str)
+      return nil if str.blank?
+
+      Date.parse(str.to_s)
+    rescue ArgumentError
+      nil
+    end
+    private_class_method :parse_date
 
     def self.cost_summary
       usages = LLMUsage.all
