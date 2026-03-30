@@ -1,3 +1,13 @@
+## 2026-03-30 — P7-005 Proactive onboarding & hardening
+
+- **Idle sessions API:** `GET /api/admin/idle_sessions` — returns active sessions idle > 2 hours, excluding completed, recently nudged (24h cooldown), and opted-out. Auth via `OPENCLAW_HOOKS_TOKEN`; gated by `PROACTIVE_NUDGE_ENABLED`.
+- **Health check:** `GET /api/admin/openclaw_status` — returns feature flag state and gateway URL. Auth via hook token; gated by `OPENCLAW_ENABLED`.
+- **STOP/HELP/START keywords:** `InboundProcessor` now intercepts STOP (opts out, replies confirmation), HELP (replies usage), START (re-opts in). Keyword events logged in `SmsEvent` with `metadata: { keyword: … }`.
+- **Frequency cap:** `IdleSessionsQuery` excludes sessions that received an outbound nudge event (`metadata: { nudge: true }`) within the cooldown window (default 24h).
+- **Admin API base:** `Api::Admin::BaseController` extracts shared hook-token auth for admin endpoints under `/api/admin/`.
+- **Runbook:** `docs/ops/openclaw-runbook.md` — gateway start/stop, channel troubleshooting, disabling nudges, diagnostics, emergency kill.
+- **Tests:** `idle_sessions_controller_test`, `openclaw_status_controller_test`, `idle_sessions_query_test`, `inbound_processor_stop_keywords_test`.
+
 ## 2026-03-29 — P7-003 Cross-channel orchestration
 
 - Added `Onboarding::TurnProcessor` as the single entry for web + SMS turns: `session.with_lock`, user/assistant `Message` rows with channel metadata (`channel`, `last_channel_before`, optional `provider_message_id`, `inbound_event_id`).

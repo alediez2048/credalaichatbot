@@ -262,6 +262,44 @@ Send a message on the connected channel. You should see:
 
 ---
 
+## Multiple projects on one machine (avoid collisions)
+
+OpenClaw keeps **one default** state tree under `~/.openclaw/`. If you onboard or change `agents.defaults.workspace` without isolating profiles, **the last change wins** and you can point the default agent at the wrong repo.
+
+### Use a named profile per project
+
+The CLI documents:
+
+- **`openclaw --profile <name> …`** — isolates `OPENCLAW_STATE_DIR` / `OPENCLAW_CONFIG_PATH` under **`~/.openclaw-<name>/`** (separate `openclaw.json`, agents, sessions, channels).
+- **`openclaw --dev …`** — second isolated tree under `~/.openclaw-dev/` with default gateway port **19001** (handy for two setups, not three).
+
+**Suggested layout**
+
+| Project | Profile name | Config dir | Gateway port (example) | Workspace |
+|---------|--------------|------------|-------------------------|-----------|
+| Credal | `credal` | `~/.openclaw-credal/` | `18790` | e.g. repo path or `~/…/Credal.ai/openclaw-workspace` |
+| Opendoor | `opendoor` | `~/.openclaw-opendoor/` | `18789` | Opendoor’s `openclaw` folder |
+| Other | `myapp` | `~/.openclaw-myapp/` | `18791` | That app’s workspace |
+
+Give each profile a **different `gateway.port`** so two gateways can run at once if you ever need that.
+
+### Credal-specific
+
+1. Prefer **`openclaw --profile credal onboard`** (or `setup` / `configure`) so Credal never touches `~/.openclaw/` default.
+2. Set **`OPENCLAW_GATEWAY_URL`** in `backend/.env` to the **Credal** gateway, e.g. `http://127.0.0.1:18790` if Credal uses port 18790.
+3. **`OPENCLAW_HOOKS_TOKEN`** is **per Rails app**, not global: Credal’s `.env` token only needs to match whatever outbound hook config you use **for the Credal agent** in that profile’s config (and any automation that POSTs to `/api/openclaw/turn`). Other projects use their own Rails URLs and tokens.
+
+### macOS LaunchAgent / one daemon
+
+`openclaw doctor` / `gateway install` typically installs **one** gateway service (e.g. `ai.openclaw.gateway`). That service usually reflects **one** profile/config. For multiple projects:
+
+- **Simplest:** Run only one gateway at a time — `openclaw gateway stop`, then `openclaw --profile credal gateway start` (foreground or install for that profile when you’re working on Credal).
+- **Parallel:** Run a second gateway on another port in another terminal with **`openclaw --profile <other> gateway start --port <port>`** (confirm no port clash with the first).
+
+Always know **which profile** is active when you run `channels`, `onboard`, or `dashboard`.
+
+---
+
 ## Environment Variables
 
 ### Rails (`backend/.env`)

@@ -3,7 +3,7 @@
 **Priority:** P7  
 **Estimate:** 4 hours  
 **Phase:** 7 — Omnichannel Continuity  
-**Status:** Proposed
+**Status:** In progress (Rails endpoints, keyword handling, query, runbook, tests landed; heartbeat HEARTBEAT.md + openclaw.json config still manual/operator-side)
 
 ---
 

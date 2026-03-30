@@ -8,6 +8,11 @@ Rails.application.routes.draw do
   namespace :api do
     post "openclaw/turn", to: "openclaw_turns#create"
 
+    namespace :admin do
+      get "idle_sessions", to: "idle_sessions#index"
+      get "openclaw_status", to: "openclaw_status#show"
+    end
+
     patch "onboarding_sessions/:onboarding_session_id/sms_settings", to: "onboarding_sms_settings#update"
     post "onboarding_sessions/:onboarding_session_id/sms_handoff", to: "onboarding_sms_settings#handoff"
 
