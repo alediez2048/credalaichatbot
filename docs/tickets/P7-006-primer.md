@@ -3,7 +3,7 @@
 **Priority:** P7  
 **Estimate:** 6 hours  
 **Phase:** 7 — Omnichannel Continuity  
-**Status:** Proposed
+**Status:** In progress (Rails dashboard + drill-down + services + tests landed; optional funnel drill-down / full-row click / JS sorting deferred)
 
 ---
 
@@ -26,47 +26,47 @@ Extend the existing `/admin/dashboard` (P5-004) into a comprehensive operations 
 ## Deliverables Checklist
 
 ### 1. Session detail / drill-down page
-- [ ] Route: `GET /admin/sessions/:id`
-- [ ] Full message timeline with role, content (truncated), channel badge (web/sms/whatsapp/etc.), timestamp
-- [ ] Step transitions highlighted in the timeline (step changed markers)
-- [ ] Channel switch moments flagged visually (e.g. "switched from web to sms")
-- [ ] Session metadata sidebar: user info, phone, consent status, current step, progress %, time in flow, total cost, last channel, last interaction
+- [x] Route: `GET /admin/sessions/:id`
+- [x] Full message timeline with role, content (truncated), channel badge (web/sms/whatsapp/etc.), timestamp
+- [x] Step transitions highlighted in the timeline (step changed markers)
+- [x] Channel switch moments flagged visually (e.g. "switched from web to sms")
+- [x] Session metadata sidebar: user info, phone, consent status, current step, progress %, time in flow, total cost, last channel, last interaction
 
 ### 2. User journey funnel (enhanced)
-- [ ] Replace the current step-count table with a true funnel visualization showing drop-off between each step (how many entered step N vs advanced to step N+1)
-- [ ] Time-in-step distribution: average time spent at each step (identifies friction points)
+- [x] Replace the current step-count table with a true funnel visualization showing drop-off between each step (how many entered step N vs advanced to step N+1)
+- [x] Time-in-step distribution: average time spent at each step (identifies friction points)
 - [ ] Optional: hover/click on a funnel stage to see the sessions stuck there
 
 ### 3. Channel analytics panel
-- [ ] Breakdown of sessions by channel: web-only, SMS-opted-in, multi-channel (used both)
-- [ ] Completion rate by channel type (web-only vs multi-channel)
-- [ ] Channel switch events over time (web→sms, sms→web)
-- [ ] SMS event summary: total inbound, total outbound, delivery success rate
+- [x] Breakdown of sessions by channel: web-only, SMS-opted-in, multi-channel (used both)
+- [x] Completion rate by channel type (web-only vs multi-channel)
+- [x] Channel switch events over time (web→sms, sms→web)
+- [x] SMS event summary: total inbound, total outbound, delivery success rate
 
 ### 4. User interaction analytics
-- [ ] Average messages per session (user vs assistant breakdown)
-- [ ] Average session duration (first message to last message)
-- [ ] Sessions with errors / fallbacks count
-- [ ] Sentiment distribution across sessions (if P4-001 data available): % frustrated, neutral, positive
-- [ ] Tool usage frequency: which tools are called most (from message metadata or LLM usage)
+- [x] Average messages per session (user vs assistant breakdown)
+- [x] Average session duration (first message to last message)
+- [x] Sessions with errors / fallbacks count
+- [x] Sentiment distribution across sessions (if P4-001 data available): % frustrated, neutral, positive
+- [x] Tool usage frequency: which tools are called most (from message metadata or LLM usage) — **LLM usage by model** (proxy; not per-tool from message metadata)
 
 ### 5. Completion outcomes table
-- [ ] Filterable/sortable table of all sessions (not just recent 20)
-- [ ] Columns: ID, user email (or "anon"), current step, progress %, channel(s) used, message count, duration, cost, outcome (completed / abandoned / active), created, last activity
-- [ ] Filters: status (completed/active/abandoned), channel, date range
-- [ ] "Abandoned" = inactive > 24 hours and not completed
-- [ ] Click row → session detail page
+- [x] Filterable/sortable table of all sessions (not just recent 20) — **filterable**; sort via column headers deferred
+- [x] Columns: ID, user email (or "anon"), current step, progress %, channel(s) used, message count, duration, cost, outcome (completed / abandoned / active), created, last activity
+- [x] Filters: status (completed/active/abandoned), channel, date range
+- [x] "Abandoned" = inactive > 24 hours and not completed
+- [x] Click row → session detail page — **link on session ID** (full-row link optional follow-up)
 
 ### 6. Service layer
-- [ ] `Admin::SessionDetailStats.call(session_id)` — all data for a single session drill-down
-- [ ] `Admin::ChannelAnalytics.call` — channel breakdown metrics
-- [ ] `Admin::InteractionAnalytics.call` — message/duration/error/sentiment aggregates
-- [ ] Extend `Admin::DashboardStats` with enhanced funnel (time-in-step, drop-off rates)
+- [x] `Admin::SessionDetailStats.call(session_id)` — all data for a single session drill-down
+- [x] `Admin::ChannelAnalytics.call` — channel breakdown metrics
+- [x] `Admin::InteractionAnalytics.call` — message/duration/error/sentiment aggregates
+- [x] Extend `Admin::DashboardStats` with enhanced funnel (time-in-step, drop-off rates)
 
 ### 7. Tests
-- [ ] Unit tests for each new service (with factory data)
-- [ ] Controller test: admin sees new pages, non-admin rejected
-- [ ] Session detail page renders with channel metadata
+- [x] Unit tests for each new service (with factory data)
+- [x] Controller test: admin sees new pages, non-admin rejected
+- [x] Session detail page renders with channel metadata
 
 ---
 

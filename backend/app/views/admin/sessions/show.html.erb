@@ -1,0 +1,83 @@
+<% d = @detail %>
+<% sb = d[:sidebar] %>
+<div class="max-w-7xl mx-auto px-4 py-8">
+  <%= link_to "← Back to dashboard", admin_dashboard_path, class: "text-indigo-600 hover:text-indigo-800 text-sm font-medium mb-4 inline-block" %>
+  <h1 class="text-2xl font-bold text-gray-900 mb-6"><%= d[:title] %></h1>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div class="lg:col-span-2 space-y-4">
+      <h2 class="text-lg font-semibold text-gray-800">Message timeline</h2>
+      <div class="bg-white rounded-lg shadow divide-y divide-gray-100">
+        <% d[:timeline].each do |item| %>
+          <% if item[:kind] == :channel_switch %>
+            <div class="px-4 py-3 bg-amber-50 text-sm text-amber-900 border-l-4 border-amber-400">
+              <span class="font-semibold">Channel switch</span>
+              <%= item[:from] %> → <%= item[:to] %>
+              <span class="text-amber-700 ml-2"><%= item[:at]&.strftime("%b %d %H:%M") %></span>
+            </div>
+          <% elsif item[:kind] == :step %>
+            <div class="px-4 py-2 bg-indigo-50 text-sm text-indigo-900 border-l-4 border-indigo-500">
+              <span class="font-semibold">Step:</span> <%= item[:step].to_s.humanize %>
+              <span class="text-indigo-600 ml-2"><%= item[:at]&.strftime("%H:%M") %></span>
+            </div>
+          <% else %>
+            <div class="px-4 py-3 flex gap-3">
+              <span class="shrink-0 text-xs font-mono uppercase px-2 py-0.5 rounded <%= item[:role] == 'user' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-700' %>">
+                [<%= item[:channel] %>]
+              </span>
+              <div class="min-w-0 flex-1">
+                <div class="text-xs text-gray-400 mb-1">
+                  <%= item[:role].upcase %> · <%= item[:at]&.strftime("%b %d %H:%M:%S") %>
+                  <% if item[:error] %>
+                    <span class="text-red-600 font-medium ml-2">error<% if item[:category].present? %> (<%= item[:category] %>)<% end %></span>
+                  <% end %>
+                </div>
+                <p class="text-sm text-gray-800 break-words"><%= item[:content] %></p>
+              </div>
+            </div>
+          <% end %>
+        <% end %>
+        <% if d[:timeline].empty? %>
+          <p class="p-6 text-gray-400 text-center">No messages yet</p>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="space-y-6">
+      <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-semibold text-gray-800 mb-4">Session info</h2>
+        <dl class="space-y-2 text-sm">
+          <div class="flex justify-between gap-2"><dt class="text-gray-500">Step</dt><dd class="font-medium text-right"><%= sb[:step] %></dd></div>
+          <div class="flex justify-between gap-2"><dt class="text-gray-500">Progress</dt><dd class="font-medium text-right"><%= sb[:progress_percent] %>%</dd></div>
+          <div class="flex justify-between gap-2"><dt class="text-gray-500">Status</dt><dd class="font-medium text-right"><%= sb[:status] %></dd></div>
+          <div class="flex justify-between gap-2"><dt class="text-gray-500">Duration</dt><dd class="font-medium text-right"><%= sb[:duration_minutes] %> min</dd></div>
+          <div class="flex justify-between gap-2"><dt class="text-gray-500">Messages</dt><dd class="font-medium text-right"><%= sb[:message_count] %> (<%= sb[:user_messages] %> user / <%= sb[:assistant_messages] %> asst)</dd></div>
+          <div class="flex justify-between gap-2"><dt class="text-gray-500">Cost</dt><dd class="font-medium text-right">$<%= sprintf("%.4f", sb[:cost]) %></dd></div>
+          <div class="flex justify-between gap-2"><dt class="text-gray-500">Phone</dt><dd class="font-medium text-right break-all"><%= sb[:phone].presence || "—" %></dd></div>
+          <div class="flex justify-between gap-2"><dt class="text-gray-500">SMS opt-in</dt><dd class="font-medium text-right"><%= sb[:sms_opt_in] ? "Yes" : "No" %></dd></div>
+          <div class="flex justify-between gap-2"><dt class="text-gray-500">Last channel</dt><dd class="font-medium text-right"><%= sb[:last_channel] %></dd></div>
+          <div class="flex justify-between gap-2"><dt class="text-gray-500">Last active</dt><dd class="font-medium text-right text-xs"><%= sb[:last_interaction_at]&.strftime("%b %d %H:%M") || "—" %></dd></div>
+          <% if sb[:channel_type].present? %>
+            <div class="flex justify-between gap-2"><dt class="text-gray-500">Gateway</dt><dd class="font-medium text-right text-xs break-all"><%= sb[:channel_type] %> / <%= sb[:channel_user_id] %></dd></div>
+          <% end %>
+        </dl>
+      </div>
+
+      <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-semibold text-gray-800 mb-4">Channels & SMS</h2>
+        <p class="text-xs text-gray-500 mb-2">Messages by channel</p>
+        <ul class="text-sm space-y-1 mb-4">
+          <% sb[:channel_tally].each do |ch, n| %>
+            <li class="flex justify-between"><span><%= ch %></span><span class="font-medium"><%= n %></span></li>
+          <% end %>
+        </ul>
+        <p class="text-sm text-gray-600">Channel switches: <span class="font-semibold"><%= sb[:channel_switch_count] %></span></p>
+        <dl class="mt-3 text-sm space-y-1">
+          <div class="flex justify-between"><dt class="text-gray-500">SMS inbound</dt><dd><%= sb[:sms_inbound] %></dd></div>
+          <div class="flex justify-between"><dt class="text-gray-500">SMS outbound</dt><dd><%= sb[:sms_outbound] %></dd></div>
+          <div class="flex justify-between"><dt class="text-gray-500">SMS failed</dt><dd class="text-red-600"><%= sb[:sms_failed] %></dd></div>
+        </dl>
+      </div>
+    </div>
+  </div>
+</div>

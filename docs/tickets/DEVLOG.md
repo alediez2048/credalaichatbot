@@ -1,3 +1,11 @@
+## 2026-03-30 — P7-006 Admin dashboard analytics & session drill-down
+
+- **Session detail:** `GET /admin/sessions/:id` — timeline with channel badges, channel-switch markers, step markers (from `metadata[:step_changed]` / `step_after` on assistant messages).
+- **TurnProcessor:** Persists `step_changed` and `step_after` on assistant messages when the orchestrator advances the step (feeds funnel time-in-step and timeline).
+- **Dashboard:** Progression funnel (reached / proceeded / retention / drop-off / avg minutes per step), channel analytics panel, interaction analytics (messages, duration, errors, sentiment %, LLM usage by model), filterable session outcomes table (status, channel, date range), links to session detail from outcomes and recent sessions.
+- **Services:** `Admin::SessionDetailStats`, `Admin::ChannelAnalytics`, `Admin::InteractionAnalytics`, `Admin::SessionOutcomes`; `Admin::DashboardStats.call` accepts filter kwargs and returns the new aggregates.
+- **Tests:** Unit tests for the new services; `Admin::SessionsControllerTest`; extended `DashboardStatsTest` and `DashboardControllerTest`.
+
 ## 2026-03-30 — P7-005 Proactive onboarding & hardening
 
 - **Idle sessions API:** `GET /api/admin/idle_sessions` — returns active sessions idle > 2 hours, excluding completed, recently nudged (24h cooldown), and opted-out. Auth via `OPENCLAW_HOOKS_TOKEN`; gated by `PROACTIVE_NUDGE_ENABLED`.

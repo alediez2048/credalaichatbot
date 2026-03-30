@@ -27,36 +27,37 @@
   </div>
 
   <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-    <%# === Completion Funnel === %>
-    <div class="bg-white rounded-lg shadow p-6">
-      <h2 class="text-lg font-semibold text-gray-800 mb-4">Completion Funnel</h2>
-      <table class="w-full">
+    <%# === Progression funnel (drop-off) === %>
+    <div class="bg-white rounded-lg shadow p-6 overflow-x-auto">
+      <h2 class="text-lg font-semibold text-gray-800 mb-4">Onboarding funnel (progression)</h2>
+      <p class="text-xs text-gray-500 mb-3">Reached each step vs proceeded past it; avg minutes before next step (from message markers).</p>
+      <table class="w-full text-sm min-w-[28rem]">
         <thead>
-          <tr class="text-left text-sm text-gray-500">
+          <tr class="text-left text-gray-500 border-b">
             <th class="pb-2">Step</th>
-            <th class="pb-2 text-right">Count</th>
-            <th class="pb-2 text-right">%</th>
-            <th class="pb-2 w-1/3"></th>
+            <th class="pb-2 text-right">Reached</th>
+            <th class="pb-2 text-right">Past</th>
+            <th class="pb-2 text-right">Retention</th>
+            <th class="pb-2 text-right">Drop-off</th>
+            <th class="pb-2 text-right">Avg min</th>
           </tr>
         </thead>
         <tbody>
-          <% @stats[:step_funnel].each do |entry| %>
+          <% @stats[:enhanced_funnel].each do |row| %>
             <tr class="border-t border-gray-100">
-              <td class="py-2 text-sm font-medium"><%= entry[:step].humanize %></td>
-              <td class="py-2 text-sm text-right"><%= entry[:count] %></td>
-              <td class="py-2 text-sm text-right"><%= entry[:percent] %>%</td>
-              <td class="py-2 pl-4">
-                <div class="w-full bg-gray-200 rounded-full h-2">
-                  <div class="bg-indigo-500 h-2 rounded-full" style="width: <%= [entry[:percent], 100].min %>%"></div>
-                </div>
-              </td>
+              <td class="py-2 font-medium"><%= row[:step].humanize %></td>
+              <td class="py-2 text-right"><%= row[:reached_count] %></td>
+              <td class="py-2 text-right"><%= row[:proceeded_count] %></td>
+              <td class="py-2 text-right"><%= row[:retention_percent] %>%</td>
+              <td class="py-2 text-right text-amber-700"><%= row[:drop_off_percent] %>%</td>
+              <td class="py-2 text-right text-gray-600"><%= row[:avg_minutes_in_step].present? ? row[:avg_minutes_in_step] : "—" %></td>
             </tr>
           <% end %>
         </tbody>
       </table>
     </div>
 
-    <%# === Cost Summary === %>
+    <%# === Cost + Eval === %>
     <div class="bg-white rounded-lg shadow p-6">
       <h2 class="text-lg font-semibold text-gray-800 mb-4">Cost Summary</h2>
       <% cost = @stats[:cost_summary] %>
@@ -79,7 +80,6 @@
         </div>
       </dl>
 
-      <%# === Eval Summary === %>
       <% if @stats[:eval_summary] %>
         <h2 class="text-lg font-semibold text-gray-800 mt-6 mb-4">Eval Results</h2>
         <% eval_data = @stats[:eval_summary] %>
@@ -109,6 +109,129 @@
     </div>
   </div>
 
+  <% ca = @stats[:channel_analytics] %>
+  <% ia = @stats[:interaction_analytics] %>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+    <div class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-lg font-semibold text-gray-800 mb-4">Channel analytics</h2>
+      <dl class="space-y-2 text-sm">
+        <div class="flex justify-between"><dt class="text-gray-500">Web-only sessions</dt><dd class="font-medium"><%= ca[:web_only_count] %></dd></div>
+        <div class="flex justify-between"><dt class="text-gray-500">SMS opted-in</dt><dd class="font-medium"><%= ca[:sms_opted_in_count] %></dd></div>
+        <div class="flex justify-between"><dt class="text-gray-500">Multi-channel</dt><dd class="font-medium"><%= ca[:multichannel_count] %></dd></div>
+        <div class="flex justify-between"><dt class="text-gray-500">Completion % (web-only)</dt><dd class="font-medium"><%= ca[:completion_rate_web_only] %>%</dd></div>
+        <div class="flex justify-between"><dt class="text-gray-500">Completion % (multi-channel)</dt><dd class="font-medium"><%= ca[:completion_rate_multichannel] %>%</dd></div>
+      </dl>
+      <h3 class="text-sm font-semibold text-gray-700 mt-4 mb-2">SMS events</h3>
+      <dl class="space-y-1 text-sm">
+        <div class="flex justify-between"><dt class="text-gray-500">Inbound</dt><dd><%= ca[:sms_summary][:inbound] %></dd></div>
+        <div class="flex justify-between"><dt class="text-gray-500">Outbound</dt><dd><%= ca[:sms_summary][:outbound] %></dd></div>
+        <div class="flex justify-between"><dt class="text-gray-500">Delivery success</dt><dd><%= ca[:sms_summary][:delivery_success_rate] %>%</dd></div>
+      </dl>
+      <% if ca[:channel_switches_by_day].any? %>
+        <h3 class="text-sm font-semibold text-gray-700 mt-4 mb-2">Channel switches by day</h3>
+        <ul class="text-xs text-gray-600 space-y-1 max-h-32 overflow-y-auto">
+          <% ca[:channel_switches_by_day].each do |day, n| %>
+            <li class="flex justify-between"><span><%= day %></span><span><%= n %></span></li>
+          <% end %>
+        </ul>
+      <% end %>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-lg font-semibold text-gray-800 mb-4">Interactions</h2>
+      <dl class="space-y-2 text-sm">
+        <div class="flex justify-between"><dt class="text-gray-500">Avg user msgs / session</dt><dd class="font-medium"><%= ia[:avg_user_messages_per_session] %></dd></div>
+        <div class="flex justify-between"><dt class="text-gray-500">Avg assistant msgs / session</dt><dd class="font-medium"><%= ia[:avg_assistant_messages_per_session] %></dd></div>
+        <div class="flex justify-between"><dt class="text-gray-500">Avg session duration</dt><dd class="font-medium"><%= ia[:avg_session_duration_minutes] %> min</dd></div>
+        <div class="flex justify-between"><dt class="text-gray-500">Sessions w/ error messages</dt><dd class="font-medium"><%= ia[:sessions_with_error_messages] %></dd></div>
+      </dl>
+      <% if ia[:sentiment_distribution].any? %>
+        <h3 class="text-sm font-semibold text-gray-700 mt-4 mb-2">Sentiment (% of readings)</h3>
+        <ul class="text-sm space-y-1">
+          <% ia[:sentiment_distribution].each do |label, pct| %>
+            <li class="flex justify-between"><span class="capitalize"><%= label %></span><span><%= pct %>%</span></li>
+          <% end %>
+        </ul>
+      <% end %>
+      <% if ia[:llm_usage_by_model].any? %>
+        <h3 class="text-sm font-semibold text-gray-700 mt-4 mb-2">LLM calls by model</h3>
+        <ul class="text-xs text-gray-600 space-y-1 max-h-28 overflow-y-auto">
+          <% ia[:llm_usage_by_model].sort_by { |_, c| -c }.each do |model, c| %>
+            <li class="flex justify-between gap-2"><span class="truncate"><%= model %></span><span><%= c %></span></li>
+          <% end %>
+        </ul>
+      <% end %>
+    </div>
+  </div>
+
+  <%# === Outcomes table + filters === %>
+  <div class="bg-white rounded-lg shadow p-6 mb-8">
+    <h2 class="text-lg font-semibold text-gray-800 mb-4">Session outcomes</h2>
+    <%= form_with url: admin_dashboard_path, method: :get, local: true, class: "flex flex-wrap gap-3 items-end mb-4" do %>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Status</label>
+        <%= select_tag :status, options_for_select([["All", "all"], ["Active", "active"], ["Completed", "completed"], ["Abandoned", "abandoned"]], params[:status] || "all"), class: "border rounded px-2 py-1 text-sm" %>
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Channel</label>
+        <%= select_tag :channel, options_for_select([["All", "all"], ["Web-only", "web_only"], ["Multi-channel", "multichannel"], ["SMS opted-in", "sms_opted"]], params[:channel] || "all"), class: "border rounded px-2 py-1 text-sm" %>
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">From</label>
+        <%= date_field_tag :date_from, params[:date_from], class: "border rounded px-2 py-1 text-sm" %>
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">To</label>
+        <%= date_field_tag :date_to, params[:date_to], class: "border rounded px-2 py-1 text-sm" %>
+      </div>
+      <%= submit_tag "Apply", class: "bg-indigo-600 text-white text-sm px-4 py-1.5 rounded hover:bg-indigo-700" %>
+    <% end %>
+    <div class="overflow-x-auto -mx-2">
+      <table class="w-full text-sm min-w-[56rem]">
+        <thead>
+          <tr class="text-left text-gray-500 border-b">
+            <th class="pb-2 pl-2">ID</th>
+            <th class="pb-2">User</th>
+            <th class="pb-2">Step</th>
+            <th class="pb-2 text-right">Progress</th>
+            <th class="pb-2">Channels</th>
+            <th class="pb-2 text-right">Msgs</th>
+            <th class="pb-2 text-right">Dur (m)</th>
+            <th class="pb-2 text-right">Cost</th>
+            <th class="pb-2">Outcome</th>
+            <th class="pb-2">Created</th>
+            <th class="pb-2 pr-2">Last activity</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @stats[:session_outcomes].each do |row| %>
+            <tr class="border-t border-gray-50 hover:bg-gray-50">
+              <td class="py-2 pl-2 font-mono text-xs"><%= link_to row[:id], admin_session_path(row[:id]), class: "text-indigo-600 hover:underline" %></td>
+              <td class="py-2"><%= row[:user_email].presence || "anon" %></td>
+              <td class="py-2"><%= row[:current_step] %></td>
+              <td class="py-2 text-right"><%= row[:progress_percent] %>%</td>
+              <td class="py-2 text-xs max-w-[8rem] truncate" title="<%= row[:channels_label] %>"><%= row[:channels_label] %></td>
+              <td class="py-2 text-right"><%= row[:message_count] %></td>
+              <td class="py-2 text-right"><%= row[:duration_minutes] %></td>
+              <td class="py-2 text-right">$<%= sprintf("%.4f", row[:cost]) %></td>
+              <td class="py-2">
+                <span class="px-2 py-0.5 rounded text-xs font-medium
+                  <%= row[:outcome] == 'completed' ? 'bg-green-100 text-green-800' : row[:outcome] == 'abandoned' ? 'bg-gray-200 text-gray-700' : 'bg-blue-100 text-blue-800' %>">
+                  <%= row[:outcome] %>
+                </span>
+              </td>
+              <td class="py-2 text-gray-500 text-xs"><%= row[:created_at]&.strftime("%b %d %H:%M") %></td>
+              <td class="py-2 pr-2 text-gray-500 text-xs"><%= row[:last_activity]&.strftime("%b %d %H:%M") %></td>
+            </tr>
+          <% end %>
+          <% if @stats[:session_outcomes].empty? %>
+            <tr><td colspan="11" class="py-4 text-center text-gray-400">No sessions match filters</td></tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
   <%# === Recent Sessions === %>
   <div class="bg-white rounded-lg shadow p-6">
     <h2 class="text-lg font-semibold text-gray-800 mb-4">Recent Sessions</h2>
@@ -128,7 +251,7 @@
         <tbody>
           <% @stats[:recent_sessions].each do |s| %>
             <tr class="border-t border-gray-50 hover:bg-gray-50">
-              <td class="py-2 font-mono text-xs"><%= s[:id] %></td>
+              <td class="py-2 font-mono text-xs"><%= link_to s[:id], admin_session_path(s[:id]), class: "text-indigo-600 hover:underline" %></td>
               <td class="py-2"><%= s[:user_id] || "anon" %></td>
               <td class="py-2"><%= s[:current_step] %></td>
               <td class="py-2 text-right"><%= s[:progress_percent] %>%</td>

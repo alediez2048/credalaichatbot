@@ -6,7 +6,12 @@ module Admin
     before_action :require_admin
 
     def index
-      @stats = Admin::DashboardStats.call
+      @stats = Admin::DashboardStats.call(
+        status: params[:status],
+        channel: params[:channel],
+        date_from: params[:date_from],
+        date_to: params[:date_to]
+      )
     end
 
     private

@@ -26,6 +26,7 @@ Rails.application.routes.draw do
   end
   namespace :admin do
     get "dashboard", to: "dashboard#index", as: :dashboard
+    get "sessions/:id", to: "sessions#show", as: :session
   end
 
   namespace :webhooks do
